@@ -1,24 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
-  <link href="http://squarezw.github.com/atom.xml" rel="self"/>
-  <link href="http://squarezw.github.com/"/>
-  <updated>2012-12-28T09:38:50+08:00</updated>
-  <id>http://squarezw.github.com/</id>
+  <title><![CDATA[square's blog]]></title>
+  <link href="www.doruby.com/atom.xml" rel="self"/>
+  <link href="www.doruby.com/"/>
+  <updated>2012-12-28T17:06:44+08:00</updated>
+  <id>www.doruby.com/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[square]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
   
   <entry>
-    <title type="html"><![CDATA[hello world]]></title>
-    <link href="http://squarezw.github.com/blog/2012/12/27/hello-world/"/>
+    <title type="html"><![CDATA[强大的日志分析工具 -- NSLogger]]></title>
+    <link href="www.doruby.com/blog/2012/12/27/hello-world/"/>
     <updated>2012-12-27T16:43:00+08:00</updated>
-    <id>http://squarezw.github.com/blog/2012/12/27/hello-world</id>
-    <content type="html"><![CDATA[<p>[self view];</p>
+    <id>www.doruby.com/blog/2012/12/27/hello-world</id>
+    <content type="html"><![CDATA[<p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
+
+<p><strong>特点</strong></p>
+
+<ul>
+<li>摆脱Xcode的小窗查看日志</li>
+<li>不用再将iPhone连接到电脑上才能看日志</li>
+<li>支持通过互联网传送日志</li>
+<li>可以输出图片的日志</li>
+<li>可自己定义日志等级</li>
+</ul>
+
+
+<p><img src="https://github.com/fpillet/NSLogger/raw/master/Screenshots/mainwindow.png" alt="nslogger mainwindow" /></p>
+
+<h2>安装</h2>
+
+<p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
+LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
+
+<p>NSLogger 支持Pod方式安装,在你的APP中配置Podfile</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pod</span> <span class="s1">&#39;NSLogger&#39;</span>
+</span><span class='line'><span class="n">pod</span> <span class="n">install</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
+
+<p><a href="www.doruby.com/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
+
+<h2>使用</h2>
+
+<ul>
+<li><code>#import "LoggerClient.h"</code></li>
+<li>设置客户端网络监控的配置</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">LoggerSetViewerHost</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="n">CFStringRef</span><span class="p">)</span><span class="err">@“</span><span class="mf">127.0.0.1</span><span class="err">”</span><span class="p">,</span> <span class="p">(</span><span class="n">UInt32</span><span class="p">)</span><span class="mi">50000</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这一段代码可以加在main.m里</p>
+
+<ul>
+<li>除了基本的日志可以打印图片的日志</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">UIImage</span> <span class="o">*</span><span class="n">img</span> <span class="o">=</span> <span class="n">ONEDefaultImageWithName</span><span class="p">(</span><span class="s">@&quot;actionBar&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">CGSize</span> <span class="n">sz</span> <span class="o">=</span> <span class="n">img</span><span class="p">.</span><span class="n">size</span><span class="p">;</span>
+</span><span class='line'><span class="n">LogImageData</span><span class="p">(</span><span class="s">@&quot;image&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">UIImagePNGRepresentation</span><span class="p">(</span><span class="n">img</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>为了不动原来的NSLog输出日志方式，可以重新定义NSLog</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">define</span> <span class="n">NSLog</span><span class="p">(...)</span> <span class="n">LogMessageF</span><span class="p">(</span> <span class="n">__FILE__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="n">__FUNCTION__</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">__VA_ARGS__</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<ul>
+<li>打开NSLogger Viewer mac端，在Preferences的Network中，勾选 Listen for loggers on TCP port.端口默认</li>
+</ul>
+
+
+<p><strong>友情提示</strong></p>
+
+<ul>
+<li>如果Xcode编译后，没有发送数据到客户端，可以先 clean 一下。</li>
+<li>客户端建议用 TCP 协议连接,这样监听端口可以固定</li>
+<li>点窗口左下角的 f 可以看到对应的日志文件与行号</li>
+</ul>
+
 ]]></content>
   </entry>
   
