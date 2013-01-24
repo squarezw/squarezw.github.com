@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="www.doruby.com/atom.xml" rel="self"/>
   <link href="www.doruby.com/"/>
-  <updated>2012-12-28T17:06:44+08:00</updated>
+  <updated>2013-01-24T12:21:05+08:00</updated>
   <id>www.doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -12,6 +12,122 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[点击阴影区关闭打开的Modal View Controller]]></title>
+    <link href="www.doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/"/>
+    <updated>2013-01-24T11:03:00+08:00</updated>
+    <id>www.doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region</id>
+    <content type="html"><![CDATA[<p>参考：<a href="http://mengxiangping.com/?p=121">Close Modal View Controller by tap the shadow region</a></p>
+
+<p>如何实现用户点击阴影区域，将当前出现的ModalViewController消失
+<img src="www.doruby.com/assets/modalViewC.png" alt="modal view controller" /></p>
+
+<p>首先了解一下: UIApplicationMain</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="err">@</span><span class="n">autoreleasepool</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">UIApplicationMain</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="nb">nil</span><span class="p">,</span> <span class="n">NSStringFromClass</span><span class="p">([</span><span class="n">AppDelegate</span> <span class="n">class</span><span class="p">]));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>argc 与 argv 是标准的c main 函数参数。 第三个参数是接收事件响应的主要对象(principalClassName)，如果存在的话必须是继承UIApplication, 第四个 delegateClassName, 实现 UIApplicationDelegate 中的协议方法.</p>
+
+<p>任何时刻你点击屏幕，principalClassName都会监听, 并执行sendEvent方法, 所以我们只要拦截这个方法，然后做我们想做的事情就可以了。</p>
+
+<h2>实现</h2>
+
+<p><strong>测试环境：iOS5, iPad</strong></p>
+
+<p>改变main的第三个参数对象为 我们自己定义的一个 MyAppplication 类。</p>
+
+<p>main.m</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">@</span><span class="n">autoreleasepool</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">UIApplicationMain</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="s">@&quot;MyApplication&quot;</span><span class="p">,</span> <span class="n">NSStringFromClass</span><span class="p">([</span><span class="n">AppDelegate</span> <span class="n">class</span><span class="p">]));</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>.h file</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">MyApplication</span> : <span class="nc">UIApplication</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>.m file</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &quot;MyApplication.h&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">MyApplication</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">sendEvent:</span><span class="p">(</span><span class="n">UIEvent</span> <span class="o">*</span><span class="p">)</span><span class="nv">event</span><span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">[</span><span class="n">super</span> <span class="nl">sendEvent:</span><span class="n">event</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// 关键是在这里拿到点击事件后,如果判断点击的是阴影区, 阴影区的View 是一个私有类, 名字叫UIDimmingView, 所以如果响应的点击事件是在这个View上的，我们就可以关闭当前的ModalView</span>
+</span><span class='line'>  <span class="n">UITouch</span><span class="o">*</span> <span class="n">touch</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">event</span> <span class="n">allTouches</span><span class="p">]</span> <span class="n">allObjects</span><span class="p">]</span> <span class="n">lastObject</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="p">([</span><span class="n">NSStringFromClass</span><span class="p">([[</span><span class="n">touch</span> <span class="n">view</span><span class="p">]</span> <span class="n">class</span><span class="p">])</span> <span class="nl">isEqualToString:</span><span class="s">@&quot;UIDimmingView&quot;</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">UIViewController</span> <span class="o">*</span> <span class="n">vc</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">self</span> <span class="n">keyWindow</span><span class="p">]</span> <span class="n">rootViewController</span><span class="p">]</span> <span class="n">presentedViewController</span><span class="p">];</span> <span class="c1">// 找到正在显示的控制器</span>
+</span><span class='line'>      <span class="p">[</span><span class="n">vc</span> <span class="nl">dismissModalViewControllerAnimated:</span><span class="n">YES</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[强大的日志分析工具 -- NSLogger]]></title>

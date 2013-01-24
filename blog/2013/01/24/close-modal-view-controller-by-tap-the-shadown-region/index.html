@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>square's blog</title>
+  <title>点击阴影区关闭打开的Modal View Controller - square's blog</title>
   <meta name="author" content="square">
 
   
@@ -24,7 +24,7 @@ int main(int &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="www.doruby.com/">
+  <link rel="canonical" href="www.doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -80,15 +80,12 @@ int main(int &hellip;">
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a></h1>
+      <h1 class="entry-title">点击阴影区关闭打开的Modal View Controller</h1>
     
     
       <p class="meta">
@@ -111,7 +108,7 @@ int main(int &hellip;">
   </header>
 
 
-  <div class="entry-content"><p>参考：<a href="http://mengxiangping.com/?p=121">Close Modal View Controller by tap the shadow region</a></p>
+<div class="entry-content"><p>参考：<a href="http://mengxiangping.com/?p=121">Close Modal View Controller by tap the shadow region</a></p>
 
 <p>如何实现用户点击阴影区域，将当前出现的ModalViewController消失
 <img src="/assets/modalViewC.png" alt="modal view controller" /></p>
@@ -220,22 +217,16 @@ int main(int &hellip;">
 </span></code></pre></td></tr></table></div></figure>
 
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 &#8211; NSLogger</a></h1>
-    
-    
-      <p class="meta">
-        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">square</span></span>
+
+      
 
 
 
@@ -247,113 +238,30 @@ int main(int &hellip;">
   
 
 
-<time datetime="2012-12-27T16:43:00+08:00" pubdate data-updated="true">Dec 27<span>th</span>, 2012</time>
-        
-      </p>
+<time datetime="2013-01-24T11:03:00+08:00" pubdate data-updated="true">Jan 24<span>th</span>, 2013</time>
+      
+
+
+    </p>
     
-  </header>
+      <div class="sharing">
+  
+  
+  
+</div>
 
-
-  <div class="entry-content"><p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
-
-<p><strong>特点</strong></p>
-
-<ul>
-<li>摆脱Xcode的小窗查看日志</li>
-<li>不用再将iPhone连接到电脑上才能看日志</li>
-<li>支持通过互联网传送日志</li>
-<li>可以输出图片的日志</li>
-<li>可自己定义日志等级</li>
-</ul>
-
-
-<p><img src="https://github.com/fpillet/NSLogger/raw/master/Screenshots/mainwindow.png" alt="nslogger mainwindow" /></p>
-
-<h2>安装</h2>
-
-<p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
-LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
-
-<p>NSLogger 支持Pod方式安装,在你的APP中配置Podfile</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pod</span> <span class="s1">&#39;NSLogger&#39;</span>
-</span><span class='line'><span class="n">pod</span> <span class="n">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
-
-<p><a href="/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
-
-<h2>使用</h2>
-
-<ul>
-<li><code>#import "LoggerClient.h"</code></li>
-<li>设置客户端网络监控的配置</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">LoggerSetViewerHost</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="n">CFStringRef</span><span class="p">)</span><span class="err">@“</span><span class="mf">127.0.0.1</span><span class="err">”</span><span class="p">,</span> <span class="p">(</span><span class="n">UInt32</span><span class="p">)</span><span class="mi">50000</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这一段代码可以加在main.m里</p>
-
-<ul>
-<li>除了基本的日志可以打印图片的日志</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">UIImage</span> <span class="o">*</span><span class="n">img</span> <span class="o">=</span> <span class="n">ONEDefaultImageWithName</span><span class="p">(</span><span class="s">@&quot;actionBar&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="n">CGSize</span> <span class="n">sz</span> <span class="o">=</span> <span class="n">img</span><span class="p">.</span><span class="n">size</span><span class="p">;</span>
-</span><span class='line'><span class="n">LogImageData</span><span class="p">(</span><span class="s">@&quot;image&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">UIImagePNGRepresentation</span><span class="p">(</span><span class="n">img</span><span class="p">));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>为了不动原来的NSLog输出日志方式，可以重新定义NSLog</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">define</span> <span class="n">NSLog</span><span class="p">(...)</span> <span class="n">LogMessageF</span><span class="p">(</span> <span class="n">__FILE__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="n">__FUNCTION__</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">__VA_ARGS__</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<ul>
-<li>打开NSLogger Viewer mac端，在Preferences的Network中，勾选 Listen for loggers on TCP port.端口默认</li>
-</ul>
-
-
-<p><strong>友情提示</strong></p>
-
-<ul>
-<li>如果Xcode编译后，没有发送数据到客户端，可以先 clean 一下。</li>
-<li>客户端建议用 TCP 协议连接,这样监听端口可以固定</li>
-<li>点窗口左下角的 f 可以看到对应的日志文件与行号</li>
-</ul>
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/12/27/hello-world/" title="Previous Post: 强大的日志分析工具 -- NSLogger">&laquo; 强大的日志分析工具 -- NSLogger</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
 </div>
-  
-  
 
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</div>
 <aside class="sidebar">
   
     <section>
@@ -365,7 +273,7 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
       </li>
     
       <li class="post">
-        <a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 &#8211; NSLogger</a>
+        <a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 -- NSLogger</a>
       </li>
     
   </ul>
@@ -378,6 +286,7 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
 
   
 </aside>
+
 
     </div>
   </div>
