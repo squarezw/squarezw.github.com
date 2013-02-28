@@ -151,20 +151,29 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>关于共公Macro应该会在哪儿定义比较好的问题</h2>
+<h2>关于各项环境配置应该放在哪儿比较好?</h2>
 
-<p>我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立一个 .xcconfig 文件</p>
+<p>我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立不同的 .xcconfig 文件, 然后将Target的配置指向它们</p>
 
-<p>将 PROJECT Info => Configurations => target Based on Configuration File 指向你建立的这个文件。 这样就可以把我们要用到的Macro定义写在这个文件里了。</p>
+<p>比如我们建立一个 Debug.xcconfig, Release.xcconfig</p>
+
+<p>将 PROJECT Info => Configurations => target Based on Configuration File 指向不同环境下的config文件。</p>
 
 <p><img src="/assets/targetConfigurations.png" alt="target configurations" /></p>
 
-<p>比如我们建立一个 Global.xcconfig, 然后指向这个 Configuration file</p>
-
 <p>我们就可以在这个文件上定义自己的Macro了，比如</p>
+
+<p>Debug.xcconfig</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">TestMacroDef</span> <span class="o">=</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Release.xcconfig</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">TestMacroDef</span> <span class="o">=</span> <span class="mi">0</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -173,13 +182,24 @@
 <p>我们还可以改变或添加系统默认的定义，比如上面在 Preprocessor Macros里定义的内容，可以这样写</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">GCC_PREPROCESSOR_DEFINITIONS</span> <span class="o">=</span> <span class="n">kShareKey</span><span class="o">=</span><span class="mi">1</span> <span class="n">$</span><span class="p">(</span><span class="n">inherited</span><span class="p">)</span> <span class="c1">// inherited 是继承原有的定义 </span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">GCC_PREPROCESSOR_DEFINITIONS</span> <span class="o">=</span> <span class="n">kShareKey</span><span class="o">=</span><span class="mi">1</span> <span class="n">$</span><span class="p">(</span><span class="n">inherited</span><span class="p">)</span> <span class="c1">// inherited 是继承原有的定义</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>tips: 你可以选中settings的一栏copy， paste 到这个文件中，即可知道定义方法。</p>
 
-<p>这个文件我们单独拿出来，应用在各个相似项目的共公定义中，供团队使用。</p>
+<p>如果我们有一些公共的配置文件，可以创建一个 公共的 xcconfig 文件，然后 include 进来即可。</p>
+
+<p>比如</p>
+
+<p>Debug.xcconfig</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#include &quot;Shared.xcconfig&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
 </div>
 
 
