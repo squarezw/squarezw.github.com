@@ -9,13 +9,7 @@
   <meta name="author" content="square">
 
   
-  <meta name="description" content="参考：Close Modal View Controller by tap the shadow region 如何实现用户点击阴影区域，将当前出现的ModalViewController消失 首先了解一下: UIApplicationMain 1
-2
-3
-4
-5
-6
-int main(int &hellip;">
+  <meta name="description" content="有时项目经常需要配置不同的开发环境，比如Debug, QA, Release, Distribution等。每个环境下，会有各自不同的环境配置项，比如变量，常量，宏定义等。 我们最早的方法是先在Build Settings里先设定 Preprocessor Macros &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -82,6 +76,119 @@ int main(int &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-28T09:30:00+08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/02/28/env-of-project-on-xcode/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>有时项目经常需要配置不同的开发环境，比如Debug, QA, Release, Distribution等。每个环境下，会有各自不同的环境配置项，比如变量，常量，宏定义等。</p>
+
+<p>我们最早的方法是先在Build Settings里先设定 Preprocessor Macros CONFIGURATION_$(CONFIGURATION)</p>
+
+<p>这样我们就可以在代码根据该 Macro 来区分现在所处的环境。通过我们是定义在 Prefix.pch 文件里:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#ifdef CONFIGURATION_Debug</span>
+</span><span class='line'><span class="cp">#   import &quot;ConfigDebug.h&quot;</span>
+</span><span class='line'><span class="cp">#else</span>
+</span><span class='line'><span class="cp">#   ...</span>
+</span><span class='line'><span class="cp">#endif</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在想到的更好的方法是直接修改Prefix Header的引用路径</p>
+
+<p>在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.</p>
+
+<p><img src="/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
+
+<p>比如: Test/Config/Test-Prefix-${CONFIGURATION}.pch</p>
+
+<p>我们新建了一个Config目录，然后在里面添加了 Test-Prefix-Debug.pch , Test-Prefix-Release.pch 等不同的环境配置文件.</p>
+
+<p>Test-Prefix-Debug.pch</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigDebug.h&quot;</span>
+</span><span class='line'><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Test-Prefix-Release.pch</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigRelease.h&quot;</span>
+</span><span class='line'><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>关于共公Macro应该会在哪儿定义比较好的问题</h2>
+
+<p>我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立一个 .xcconfig 文件</p>
+
+<p>将 PROJECT Info => Configurations => target Based on Configuration File 指向你建立的这个文件。 这样就可以把我们要用到的Macro定义写在这个文件里了。</p>
+
+<p><img src="/assets/targetConfigurations.png" alt="target configurations" /></p>
+
+<p>比如我们建立一个 Global.xcconfig, 然后指向这个 Configuration file</p>
+
+<p>我们就可以在这个文件上定义自己的Macro了，比如</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">TestMacroDef</span> <span class="o">=</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你可以在Build Settings中看到User-Defined一栏多了你自定义的Macro</p>
+
+<p>我们还可以改变或添加系统默认的定义，比如上面在 Preprocessor Macros里定义的内容，可以这样写</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">GCC_PREPROCESSOR_DEFINITIONS</span> <span class="o">=</span> <span class="n">kShareKey</span><span class="o">=</span><span class="mi">1</span> <span class="n">$</span><span class="p">(</span><span class="n">inherited</span><span class="p">)</span> <span class="c1">// inherited 是继承原有的定义 </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>tips: 你可以选中settings的一栏copy， paste 到这个文件中，即可知道定义方法。</p>
+
+<p>这个文件我们单独拿出来，应用在各个相似项目的共公定义中，供团队使用。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -370,6 +477,10 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a>
       </li>
     
@@ -432,5 +543,6 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
 var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
 document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F7c6e5af96ed07f54d5e932214d5b63a2' type='text/javascript'%3E%3C/script%3E"));
 </script>
+
 </body>
 </html>
