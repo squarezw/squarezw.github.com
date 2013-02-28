@@ -1,25 +1,25 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>doruby.com/blog/2012/12/27/hello-world/</loc>
+        <loc>http://doruby.com/blog/2012/12/27/hello-world/</loc>
         <lastmod>2013-02-01T15:45:35+08:00</lastmod>
     </url>
     <url>
         <loc>
-            doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/
+            http://doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/
         </loc>
         <lastmod>2013-02-01T15:45:35+08:00</lastmod>
     </url>
     <url>
-        <loc>doruby.com/blog/2013/02/28/env-of-project-on-xcode/</loc>
+        <loc>http://doruby.com/blog/2013/02/28/env-of-project-on-xcode/</loc>
         <lastmod>2013-02-28T12:02:19+08:00</lastmod>
     </url>
     <url>
-        <loc>doruby.com/blog/archives/</loc>
+        <loc>http://doruby.com/blog/archives/</loc>
         <lastmod>2013-02-28T12:02:19+08:00</lastmod>
     </url>
     <url>
-        <loc>doruby.com/</loc>
+        <loc>http://doruby.com/</loc>
         <lastmod>2013-02-28T12:02:19+08:00</lastmod>
     </url>
 </urlset>

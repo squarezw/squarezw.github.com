@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[square's blog]]></title>
-  <link href="doruby.com/atom.xml" rel="self"/>
-  <link href="doruby.com/"/>
-  <updated>2013-02-28T12:18:46+08:00</updated>
-  <id>doruby.com/</id>
+  <link href="http://doruby.com/atom.xml" rel="self"/>
+  <link href="http://doruby.com/"/>
+  <updated>2013-02-28T12:28:57+08:00</updated>
+  <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[在Xcode里,为项目定义不同的环境配置]]></title>
-    <link href="doruby.com/blog/2013/02/28/env-of-project-on-xcode/"/>
+    <link href="http://doruby.com/blog/2013/02/28/env-of-project-on-xcode/"/>
     <updated>2013-02-28T09:30:00+08:00</updated>
-    <id>doruby.com/blog/2013/02/28/env-of-project-on-xcode</id>
+    <id>http://doruby.com/blog/2013/02/28/env-of-project-on-xcode</id>
     <content type="html"><![CDATA[<p>有时项目经常需要配置不同的开发环境，比如Debug, QA, Release, Distribution等。每个环境下，会有各自不同的环境配置项，比如变量，常量，宏定义等。</p>
 
 <p>我们最早的方法是先在Build Settings里先设定 Preprocessor Macros CONFIGURATION_$(CONFIGURATION)</p>
@@ -41,7 +41,7 @@
 
 <p>在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.</p>
 
-<p><img src="doruby.com/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
+<p><img src="http://doruby.com/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
 
 <p>比如: Test/Config/Test-Prefix-${CONFIGURATION}.pch</p>
 
@@ -71,7 +71,7 @@
 
 <p>将 PROJECT Info => Configurations => target Based on Configuration File 指向你建立的这个文件。 这样就可以把我们要用到的Macro定义写在这个文件里了。</p>
 
-<p><img src="doruby.com/assets/targetConfigurations.png" alt="target configurations" /></p>
+<p><img src="http://doruby.com/assets/targetConfigurations.png" alt="target configurations" /></p>
 
 <p>比如我们建立一个 Global.xcconfig, 然后指向这个 Configuration file</p>
 
@@ -99,13 +99,13 @@
   
   <entry>
     <title type="html"><![CDATA[点击阴影区关闭打开的Modal View Controller]]></title>
-    <link href="doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/"/>
+    <link href="http://doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/"/>
     <updated>2013-01-24T11:03:00+08:00</updated>
-    <id>doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region</id>
+    <id>http://doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region</id>
     <content type="html"><![CDATA[<p>参考：<a href="http://mengxiangping.com/?p=121">Close Modal View Controller by tap the shadow region</a></p>
 
 <p>如何实现用户点击阴影区域，将当前出现的ModalViewController消失
-<img src="doruby.com/assets/modalViewC.png" alt="modal view controller" /></p>
+<img src="http://doruby.com/assets/modalViewC.png" alt="modal view controller" /></p>
 
 <p>首先了解一下: UIApplicationMain</p>
 
@@ -215,9 +215,9 @@
   
   <entry>
     <title type="html"><![CDATA[强大的日志分析工具 -- NSLogger]]></title>
-    <link href="doruby.com/blog/2012/12/27/hello-world/"/>
+    <link href="http://doruby.com/blog/2012/12/27/hello-world/"/>
     <updated>2012-12-27T16:43:00+08:00</updated>
-    <id>doruby.com/blog/2012/12/27/hello-world</id>
+    <id>http://doruby.com/blog/2012/12/27/hello-world</id>
     <content type="html"><![CDATA[<p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
 
 <p><strong>特点</strong></p>
@@ -249,7 +249,7 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
 
 <p><em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
 
-<p><a href="doruby.com/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
+<p><a href="http://doruby.com/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
 
 <h2>使用</h2>
 
