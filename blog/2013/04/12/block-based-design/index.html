@@ -1,0 +1,315 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>模块化设计-iOS团队协作开发 v1.0 - square's blog</title>
+  <meta name="author" content="square">
+
+  
+  <meta name="description" content="现状 当项目发展到一定阶段，功能会变得越来越庞大，修改一个功能可能有牵一发而动全身的感觉，维护变的相当吃力。如果只是扩充项目成员的话，协作也会成为一种障碍，人多反而不能提高生产率。 如果只是一、两个成员开发的项目还好说，之间的沟通与协作更加灵活而松散，也许吼一嗓子就可以完成。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://doruby.com/blog/2013/04/12/block-based-design/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="square's blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-37287098-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">square's blog</a></h1>
+  
+    <h2>ruby & objc</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:doruby.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">模块化设计-iOS团队协作开发 v1.0</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-12T09:28:00+08:00" pubdate data-updated="true">Apr 12<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>现状</h2>
+
+<p>当项目发展到一定阶段，功能会变得越来越庞大，修改一个功能可能有牵一发而动全身的感觉，维护变的相当吃力。如果只是扩充项目成员的话，协作也会成为一种障碍，人多反而不能提高生产率。 如果只是一、两个成员开发的项目还好说，之间的沟通与协作更加灵活而松散，也许吼一嗓子就可以完成。 但如果人员也从几个到十几个，甚至几十个。就不能再靠传统流程开发了，需要更深入系统架构层面将大家工作进行规范与限定，制定标准。</p>
+
+<p>这个时候我们就需要更好的架构设计应用，使得开发与协作变得更加高效，功能的耦合性变得更小。在设计领域有一种概念是模块化设计(Block-based design).  按此概念的意思是说 &#8220;对一定范围内的不同功能或相同功能不同性能、不同规格的产品进行功能分析的基础上，划分并设计出一系列功能模块，通过模块的选择和组合构成不同的顾客定制的产品，以满足市场的不同需求&#8221;。ok, 这正是我们想要的结果.</p>
+
+<p>模块化设计也是绿色设计方法之一,所谓绿色设计是指&#8221;在产品整个生命周期内，着重考虑产品环境属性（可拆卸性，可回收性、可维护性、可重复利用性等）并将其作为设计目标，在满足环境目标要求的同时，保证产品应有的功能、使用寿命、质量等要求&#8221;.绿色设计的原则被公认为“3R”的原则，即Reduce,Reuse,Recycle，减少环境污染、减小能源消耗，产品和零部件的回收再生循环或者重新利用。</p>
+
+<p>无论是从工业设计还是软件设计，实际上都是尊崇以上的原则。注意上面几点，可拆卸性，可回收性、可维护性、可重复利用性. 我们就从这里入手重新设计。(PS:无畏的重复开发也算是一种能源消耗吧，嗯，至少我们也是爱护环保人士)</p>
+
+<p>从以往开发Web应用的经验来说，模块的划分可以从业务层面或功能层面上决定。业务层面上，你可以将不同的业务划分成各个子模块，好比公司的各个职能部门，事业一部，事业二部，后勤部门，人事部门等。从业务的层面上划分，会使得各个模块更加独立，不用和其它的部门打交道也能完成日常的事务。不过缺点是，一些如果处理公共的事务将会变得繁琐。 另外一个选择是从功能层面上，比如资料管理，订单管理，财务管理等,优点是职责清晰，不过缺点就是各管一方，事务缺少连续性。</p>
+
+<p>举个实际的例子，有一个功能需求是查询与记录，查询有食物查询，运动查询，体重查询等等。对应的也会有食物记录，运动记录，体重记录。 如果从业务上划分可以是食物管理，运动管理，体重管理，各自记录各自的信息，各自独立，互不干扰。可在一个地方就完成所有操作。但如果现在我们要收集所有的记录信息，并且各自还需要一些协作完成操作的话，这样各个功能之间的协调就会变得困难。 所以还有一个方法是按功能来划分，查询模块，记录模块， 查询模块只负责查询，查询的类型分为三种，然后需要记录的时候将信息传送到记录模块，进行一并记录。这样的好处是当我们职责各加清晰，信息统一。</p>
+
+<p>无伦从哪个角度来划分模块其实都有各自的优缺点，我们需求上来设计实际的项目，即使他们功能独立，减低耦合，又要使得信息的流转变得简单。 理论讲的差不多了，我们这里除开项目管理的基本要求，比如开发文档，注释规范，各种图等不提，只讲开发中如何拆分模与整合它们。
+好吧。下面上干货了。</p>
+
+<h2>iOS 团队开发实践</h2>
+
+<p>我们先把现在遇到的问题列出来，然后一一解决。</p>
+
+<ul>
+<li>问题: 之前我们在一个大项目里，各自负责各自的功能，代码在一个项目里管理，如果只有一个项目还好说，如果另一个项目需要其中一个功能了，那开发这个功能的人就成了搬砖头的工作泥头工了。</li>
+</ul>
+
+
+<p>解决方案：所以将各个功能按职责剥离出来，各自开发各自的功能模块，能独立运行，能编译为静态库，有完整的内部接口文档。符合上面的可拆卸性，可回收性、可维护性、可重复利用性。</p>
+
+<ul>
+<li>问题: 如果在将和个模块整合在一起时，功能之间的调用基本是通过 import 某个类的接口头文件完成.这样使得某个功能会非常依赖另一接口的实现，假如有一天，一个专门负责这个接口的人换了实现方法或这个接口就不存在了，而又没通知到引用的人，就会发生错误，你也许会说，可以保留原有接口，加上即将作废的提示，然后用替代方法进行转换。或直接告诉团队的成员，使用新的 sdk 等。 但这些操作如果变得非常频繁或不确定就会成为障碍。</li>
+</ul>
+
+
+<p>解决方案：在Rails 框架中有一个叫 Routes表的文件，用来将用户的Web请求定位到某个Controller的某个Action. 我们是不是也可以将调用看作是用户的一次 Web 请求呢。只要存在这样一张 routes 表，就可以将这个请求映射到指定的路径。 所以首先想到的是有一个专门的职能模块去构造这张表，然后维护它，相当于cocoa里的 notification center。 不过和 notification center不同的是，我们的这个 routes 表，也可以称为规则表是在应用启动时就已经创建好了的。相当于智能路由器已经配置好不同的路由方向一样。</p>
+
+<p>如何构建这张表呢，同样在Rails里也会有引用第三方的 Plugin 概念,我们也可以把各个模块看作 Plugin，Plugin自己定义自己的路由规则，然后由 route center将所有的规则合并在一起，如果其中一个模块发生变化，只需要改写自己的routes即可，不需要通知其它引用的人，除非你的命名规则发生变化。</p>
+
+<p>接下来如何构造这个请求呢？通知机制，也就是 notification , 相当于你吼一嗓子，我要去干嘛干嘛,谁来帮我处理。然后 route center 会接收此请求，根据里面的规则转送到指定的模块中处理。</p>
+
+<p>在具体实现时，还会有线程选择、广播或点到点方式、立即返回结果等规则的定义。</p>
+
+<ul>
+<li>问题: 如果模块拆分后，我们会各自依赖第三方库，整合在一起时遇到重复引用怎么管理?
+在项目中各个模块中经常会有第三方库的依赖，各个模块之间也会有所依赖，比如公共库等。如何避免重复引用及引用版本的问题。</li>
+</ul>
+
+
+<p>解决方案：用 cocoapods 软件解决，第三方的依赖全部由 podfile 配置完成，它会负责将你的引用打包于项目中，如果遇到多个引用时，它会将引用合并。 我们的各个模块也可以做成独立的 podspecs 文件，供其它模块引用，这样就可以实现了模块的升级与更新。</p>
+
+<ul>
+<li>问题: 如果要联合调试时，如何使用呢？比如其中一个功能要与另一个功能进行整合测试时，遇到更改特别频繁的时候，将会是件相当痛苦的事。</li>
+</ul>
+
+
+<p>解决方案：通过git submodule 方式将子模块引入进来，这样你可以在联调时，更改子模块的部分也可以通过 submodule 一并提交。</p>
+
+<ul>
+<li>问题: 我们还会遇到在不同的配置环境下，要引入不同的配置，比如 debug 与 release 模式调用的 api 不同情况。</li>
+</ul>
+
+
+<p>解决方案：也同样模拟 rails 的 environments 方式，将项目针对不同的环境生成不同的配置文件。然后定义各自的配置属性</p>
+
+<p>通过以上架构的调整后，项目模块间将变得非常松散，同时整合在一起时也非常简单，将模块通过 cocoapods 构成依赖，模块间数据的访问基本很少变动，最多只是将 UI 进行定制渲染。如果 UI 再进一步拆分的话，不同的部分 render 不同的内容，将可以变得更加灵活。</p>
+
+<p>参考：</p>
+
+<p><img src="/assets/one_block_based.png" alt="one block based" /></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">square</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-12T09:28:00+08:00" pubdate data-updated="true">Apr 12<span>th</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/02/28/env-of-project-on-xcode/" title="Previous Post: 在Xcode里,为项目定义不同的环境配置">&laquo; 在Xcode里,为项目定义不同的环境配置</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>like objc & ruby</p>
+  <p><a href=mailto:squarezw@yahoo.com.cn?subject=from_myblog>squarezw@yahoo.com.cn</a></p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/04/12/block-based-design/">模块化设计-iOS团队协作开发 v1.0</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 -- NSLogger</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+<section>
+  <h1>Friends</h1>
+  <ul>
+    <li>
+       <a href="http://zgm-is.me/">zgm</a>
+    </li>
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - square -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'doruby';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://doruby.com/blog/2013/04/12/block-based-design/';
+        var disqus_url = 'http://doruby.com/blog/2013/04/12/block-based-design/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F7c6e5af96ed07f54d5e932214d5b63a2' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+</body>
+</html>
