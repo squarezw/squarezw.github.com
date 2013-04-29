@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>square's blog</title>
+  <title>ARC 与内存管理 - square's blog</title>
   <meta name="author" content="square">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://doruby.com/">
+  <link rel="canonical" href="http://doruby.com/blog/2013/04/24/arc-with-memory-management/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -74,15 +74,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/04/24/arc-with-memory-management/">ARC 与内存管理</a></h1>
+      <h1 class="entry-title">ARC 与内存管理</h1>
     
     
       <p class="meta">
@@ -100,14 +97,14 @@
 
 <time datetime="2013-04-24T13:15:00+08:00" pubdate data-updated="true">Apr 24<span>th</span>, 2013</time>
         
-         | <a href="/blog/2013/04/24/arc-with-memory-management/#disqus_thread">Comments</a>
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>ARC: Automatic Reference Counting (自动引用计数)</p>
+<div class="entry-content"><p>ARC: Automatic Reference Counting (自动引用计数)</p>
 
 <p>ARC 是 iOS 5 后推出的一项为Objective - C程序在编译时提供自动内存管理的功能。ARC可以让你把注意力集中在你感兴趣的代码，减少开发中的内存管理步骤，简化开发。</p>
 
@@ -716,126 +713,16 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 </ul>
 
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/04/12/block-based-design/">模块化设计-iOS团队协作开发 v1.0</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
   
 
+<span class="byline author vcard">Posted by <span class="fn">square</span></span>
 
-<time datetime="2013-04-12T09:28:00+08:00" pubdate data-updated="true">Apr 12<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/04/12/block-based-design/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>现状</h2>
-
-<p>当项目发展到一定阶段，功能会变得越来越庞大，修改一个功能可能有牵一发而动全身的感觉，维护变的相当吃力。如果只是扩充项目成员的话，协作也会成为一种障碍，人多反而不能提高生产率。 如果只是一、两个成员开发的项目还好说，之间的沟通与协作更加灵活而松散，也许吼一嗓子就可以完成。 但如果人员也从几个到十几个，甚至几十个。就不能再靠传统流程开发了，需要更深入系统架构层面将大家工作进行规范与限定，制定标准。</p>
-
-<p>这个时候我们就需要更好的架构设计应用，使得开发与协作变得更加高效，功能的耦合性变得更小。在设计领域有一种概念是模块化设计(Block-based design).  按此概念的意思是说 &#8220;对一定范围内的不同功能或相同功能不同性能、不同规格的产品进行功能分析的基础上，划分并设计出一系列功能模块，通过模块的选择和组合构成不同的顾客定制的产品，以满足市场的不同需求&#8221;。ok, 这正是我们想要的结果.</p>
-
-<p>模块化设计也是绿色设计方法之一,所谓绿色设计是指&#8221;在产品整个生命周期内，着重考虑产品环境属性（可拆卸性，可回收性、可维护性、可重复利用性等）并将其作为设计目标，在满足环境目标要求的同时，保证产品应有的功能、使用寿命、质量等要求&#8221;.绿色设计的原则被公认为“3R”的原则，即Reduce,Reuse,Recycle，减少环境污染、减小能源消耗，产品和零部件的回收再生循环或者重新利用。</p>
-
-<p>无论是从工业设计还是软件设计，实际上都是尊崇以上的原则。注意上面几点，可拆卸性，可回收性、可维护性、可重复利用性. 我们就从这里入手重新设计。(PS:无畏的重复开发也算是一种能源消耗吧，嗯，至少我们也是爱护环保人士)</p>
-
-<p>从以往开发Web应用的经验来说，模块的划分可以从业务层面或功能层面上决定。业务层面上，你可以将不同的业务划分成各个子模块，好比公司的各个职能部门，事业一部，事业二部，后勤部门，人事部门等。从业务的层面上划分，会使得各个模块更加独立，不用和其它的部门打交道也能完成日常的事务。不过缺点是，一些如果处理公共的事务将会变得繁琐。 另外一个选择是从功能层面上，比如资料管理，订单管理，财务管理等,优点是职责清晰，不过缺点就是各管一方，事务缺少连续性。</p>
-
-<p>举个实际的例子，有一个功能需求是查询与记录，查询有食物查询，运动查询，体重查询等等。对应的也会有食物记录，运动记录，体重记录。 如果从业务上划分可以是食物管理，运动管理，体重管理，各自记录各自的信息，各自独立，互不干扰。可在一个地方就完成所有操作。但如果现在我们要收集所有的记录信息，并且各自还需要一些协作完成操作的话，这样各个功能之间的协调就会变得困难。 所以还有一个方法是按功能来划分，查询模块，记录模块， 查询模块只负责查询，查询的类型分为三种，然后需要记录的时候将信息传送到记录模块，进行一并记录。这样的好处是当我们职责各加清晰，信息统一。</p>
-
-<p>无伦从哪个角度来划分模块其实都有各自的优缺点，我们需求上来设计实际的项目，即使他们功能独立，减低耦合，又要使得信息的流转变得简单。 理论讲的差不多了，我们这里除开项目管理的基本要求，比如开发文档，注释规范，各种图等不提，拆分的方式根据你自己的业务需求自行选择拆分方式，这里只讲讲开发中如何协调和整合它们。
-好吧。下面上干货了。</p>
-
-<h2>iOS 团队开发实践</h2>
-
-<p>我们先把现在遇到的问题列出来，然后一一解决。</p>
-
-<ul>
-<li>问题: 之前我们在一个大项目里，各自负责各自的功能，代码在一个项目里管理，如果只有一个项目还好说，如果另一个项目需要其中一个功能了，那开发这个功能的人就成了搬砖头的工作泥头工了。</li>
-</ul>
-
-
-<p>解决方案：所以将各个功能按职责剥离出来，各自开发各自的功能模块。能独立运行，能编译为静态库，有完整的内部接口文档。符合上面的可拆卸性，可回收性、可维护性、可重复利用性。</p>
-
-<ul>
-<li>问题: 以往各个模块整合在一起时，功能之间的调用基本是通过 import 某个类的接口头文件完成.这样使得某个功能会非常依赖另一接口的实现，假如有一天，一个专门负责这个接口的人换了实现方法或这个接口就不存在了，而又没通知到引用的人，就会发生错误，你也许会说，可以保留原有接口，加上即将作废的提示，然后用替代方法进行转换。或直接告诉团队的成员，使用新的 sdk 等。 但这些操作如果变得非常频繁或不确定就会成为障碍。</li>
-</ul>
-
-
-<p>解决方案：在Rails 框架中有一个叫 Routes表的文件，用来将用户的Web请求定位到某个Controller的某个Action. 我们是不是也可以将调用看作是用户的一次 Web 请求呢。只要存在这样一张 routes 表，就可以将这个请求映射到指定的路径。 所以首先想到的是有一个专门的职能模块去构造这张表，然后维护它，相当于cocoa里的 notification center。 不过和 notification center不同的是，我们的这个 routes 表，也可以称为规则表是在应用启动时就已经创建好了的。相当于智能路由器已经配置好不同的路由方向一样。</p>
-
-<p>如何构建这张表呢，同样在Rails里也会有引用第三方的 Plugin 概念,我们也可以把各个模块看作 Plugin，Plugin自己定义自己的路由规则，然后由 route center将所有的规则合并在一起，如果其中一个模块发生变化，只需要改写自己的routes即可，不需要通知其它引用的人，除非你的命名规则发生变化。</p>
-
-<p>接下来如何构造这个请求呢？通知机制，也就是 notification , 相当于你吼一嗓子，我要去干嘛干嘛,谁来帮我处理。然后 route center 会接收此请求，根据里面的规则转送到指定的模块中处理，这样就减小了他们之间的相互依赖。</p>
-
-<p>在具体实现时，还会有线程选择、广播或点到点方式、立即返回结果等规则的定义。不过需要注意的是可能发会生的广播风暴。</p>
-
-<ul>
-<li>问题: 如果模块拆分后，各个模块经常会有第三方库的依赖，各个模块之间也会有所依赖，比如公共库等。如何避免重复引用及引用版本的问题。</li>
-</ul>
-
-
-<p>解决方案：用 cocoapods 软件解决，本身 cocoapods 也是用 ruby 脚本写的工具，所以改起来也比较方便。第三方的依赖全部由它自带的podfile 配置完成，它会根据你的第三方引用打包于项目中，如果遇到多个重复引用时，它会将起合并引用。 我们的各个模块也可以做成独立的 podspecs 文件，供其它模块引用，这样就可以实现了模块的升级与更新。</p>
-
-<ul>
-<li>问题: 如果要联合调试时，如何使用呢？比如其中一个功能要与另一个功能进行整合测试时，遇到更改特别频繁的时候，将会是件相当痛苦的事。</li>
-</ul>
-
-
-<p>解决方案：通过git submodule 方式将子模块引入进来，这样你可以在联调时，更改子模块的部分也可以通过 submodule 一并提交。</p>
-
-<ul>
-<li>问题: 我们还会遇到在不同的配置环境下，要引入不同的配置，比如 debug 与 release 模式调用的 api 不同情况。</li>
-</ul>
-
-
-<p>解决方案：也同样模拟 rails 的 environments 方式，将项目针对不同的环境生成不同的配置文件。然后定义各自的配置属性。</p>
-
-<p>通过以上架构的调整后，项目模块间将变得非常松散，同时整合在一起时也非常简单，将模块通过 cocoapods 构成依赖，模块间数据的访问基本很少变动，最多只是将 UI 进行定制渲染。如果 UI 再进一步拆分的话，不同的部分 render 不同的内容，将可以变得更加灵活。</p>
-
-<p>参考：</p>
-
-<p><img src="/assets/one_block_based.png" alt="one block based" /></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a></h1>
-    
-    
-      <p class="meta">
-        
 
 
 
@@ -847,393 +734,36 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
   
 
 
-<time datetime="2013-02-28T09:30:00+08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/02/28/env-of-project-on-xcode/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>有时项目经常需要配置不同的开发环境，比如Debug, QA, Release, Distribution等。每个环境下，会有各自不同的环境配置项，比如变量，常量，宏定义等。</p>
-
-<p>我们最早的方法是先在Build Settings里先设定 Preprocessor Macros CONFIGURATION_$(CONFIGURATION)</p>
-
-<p>这样我们就可以在代码根据该 Macro 来区分现在所处的环境。通过我们是定义在 Prefix.pch 文件里:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#ifdef CONFIGURATION_Debug</span>
-</span><span class='line'><span class="cp">#   import &quot;ConfigDebug.h&quot;</span>
-</span><span class='line'><span class="cp">#else</span>
-</span><span class='line'><span class="cp">#   ...</span>
-</span><span class='line'><span class="cp">#endif</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>现在想到的更好的方法是直接修改Prefix Header的引用路径</p>
-
-<p>在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.</p>
-
-<p><img src="/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
-
-<p>比如: Test/Config/Test-Prefix-${CONFIGURATION}.pch</p>
-
-<p>我们新建了一个Config目录，然后在里面添加了 Test-Prefix-Debug.pch , Test-Prefix-Release.pch 等不同的环境配置文件.</p>
-
-<p>Test-Prefix-Debug.pch</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigDebug.h&quot;</span>
-</span><span class='line'><span class="p">...</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Test-Prefix-Release.pch</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigRelease.h&quot;</span>
-</span><span class='line'><span class="p">...</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>关于各项环境配置应该放在哪儿比较好?</h2>
-
-<p>我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立不同的 .xcconfig 文件, 然后将Target的配置指向它们</p>
-
-<p>比如我们建立一个 Debug.xcconfig, Release.xcconfig</p>
-
-<p>将 PROJECT Info => Configurations => target Based on Configuration File 指向不同环境下的config文件。</p>
-
-<p><img src="/assets/targetConfigurations.png" alt="target configurations" /></p>
-
-<p>我们就可以在这个文件上定义自己的Macro了，比如</p>
-
-<p>Debug.xcconfig</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">TestMacroDef</span> <span class="o">=</span> <span class="mi">1</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Release.xcconfig</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">TestMacroDef</span> <span class="o">=</span> <span class="mi">0</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>你可以在Build Settings中看到User-Defined一栏多了你自定义的Macro</p>
-
-<p>我们还可以改变或添加系统默认的定义，比如上面在 Preprocessor Macros里定义的内容，可以这样写</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">GCC_PREPROCESSOR_DEFINITIONS</span> <span class="o">=</span> <span class="n">kShareKey</span><span class="o">=</span><span class="mi">1</span> <span class="n">$</span><span class="p">(</span><span class="n">inherited</span><span class="p">)</span> <span class="c1">// inherited 是继承原有的定义</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>tips: 你可以选中settings的一栏copy， paste 到这个文件中，即可知道定义方法。</p>
-
-<p>如果我们有一些公共的配置文件，可以创建一个 公共的 xcconfig 文件，然后 include 进来即可。</p>
-
-<p>比如</p>
-
-<p>Debug.xcconfig</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#include &quot;Shared.xcconfig&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
+<time datetime="2013-04-24T13:15:00+08:00" pubdate data-updated="true">Apr 24<span>th</span>, 2013</time>
       
-  <header>
+
+
+    </p>
     
-      <h1 class="entry-title"><a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
+      <div class="sharing">
   
-
-
-<time datetime="2013-01-24T11:03:00+08:00" pubdate data-updated="true">Jan 24<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>参考：<a href="http://mengxiangping.com/?p=121">Close Modal View Controller by tap the shadow region</a></p>
-
-<p>如何实现用户点击阴影区域，将当前出现的ModalViewController消失
-<img src="/assets/modalViewC.png" alt="modal view controller" /></p>
-
-<p>首先了解一下: UIApplicationMain</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="err">@</span><span class="n">autoreleasepool</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">UIApplicationMain</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="nb">nil</span><span class="p">,</span> <span class="n">NSStringFromClass</span><span class="p">([</span><span class="n">AppDelegate</span> <span class="n">class</span><span class="p">]));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>argc 与 argv 是标准的c main 函数参数。 第三个参数是接收事件响应的主要对象(principalClassName)，如果存在的话必须是继承UIApplication, 第四个 delegateClassName, 实现 UIApplicationDelegate 中的协议方法.</p>
-
-<p>任何时刻你点击屏幕，principalClassName都会监听, 并执行sendEvent方法, 所以我们只要拦截这个方法，然后做我们想做的事情就可以了。</p>
-
-<h2>实现</h2>
-
-<p><strong>测试环境：iOS5, iPad</strong></p>
-
-<p>改变main的第三个参数对象为 我们自己定义的一个 MyAppplication 类。</p>
-
-<p>main.m</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="err">@</span><span class="n">autoreleasepool</span> <span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="n">UIApplicationMain</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="s">@&quot;MyApplication&quot;</span><span class="p">,</span> <span class="n">NSStringFromClass</span><span class="p">([</span><span class="n">AppDelegate</span> <span class="n">class</span><span class="p">]));</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>.h file</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">@interface</span> <span class="nc">MyApplication</span> : <span class="nc">UIApplication</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">@end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>.m file</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &quot;MyApplication.h&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">@implementation</span> <span class="nc">MyApplication</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">sendEvent:</span><span class="p">(</span><span class="n">UIEvent</span> <span class="o">*</span><span class="p">)</span><span class="nv">event</span><span class="p">{</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="p">[</span><span class="n">super</span> <span class="nl">sendEvent:</span><span class="n">event</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// 关键是在这里拿到点击事件后,如果判断点击的是阴影区, 阴影区的View 是一个私有类, 名字叫UIDimmingView, 所以如果响应的点击事件是在这个View上的，我们就可以关闭当前的ModalView</span>
-</span><span class='line'>  <span class="n">UITouch</span><span class="o">*</span> <span class="n">touch</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">event</span> <span class="n">allTouches</span><span class="p">]</span> <span class="n">allObjects</span><span class="p">]</span> <span class="n">lastObject</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">if</span> <span class="p">([</span><span class="n">NSStringFromClass</span><span class="p">([[</span><span class="n">touch</span> <span class="n">view</span><span class="p">]</span> <span class="n">class</span><span class="p">])</span> <span class="nl">isEqualToString:</span><span class="s">@&quot;UIDimmingView&quot;</span><span class="p">])</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">UIViewController</span> <span class="o">*</span> <span class="n">vc</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">self</span> <span class="n">keyWindow</span><span class="p">]</span> <span class="n">rootViewController</span><span class="p">]</span> <span class="n">presentedViewController</span><span class="p">];</span> <span class="c1">// 找到正在显示的控制器</span>
-</span><span class='line'>      <span class="p">[</span><span class="n">vc</span> <span class="nl">dismissModalViewControllerAnimated:</span><span class="n">YES</span><span class="p">];</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">@end</span>
-</span></code></pre></td></tr></table></div></figure>
-
+  
+  
 </div>
-  
-  
 
-
-    </article>
-  
-  
-    <article>
+    
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 &#8211; NSLogger</a></h1>
-    
-    
-      <p class="meta">
-        
+        <a class="basic-alignment left" href="/blog/2013/04/12/block-based-design/" title="Previous Post: 模块化设计-iOS团队协作开发 v1.0">&laquo; 模块化设计-iOS团队协作开发 v1.0</a>
+      
+      
+    </p>
+  </footer>
+</article>
 
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-12-27T16:43:00+08:00" pubdate data-updated="true">Dec 27<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/12/27/hello-world/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
-
-<p><strong>特点</strong></p>
-
-<ul>
-<li>摆脱Xcode的小窗查看日志</li>
-<li>不用再将iPhone连接到电脑上才能看日志</li>
-<li>支持通过互联网传送日志</li>
-<li>可以输出图片的日志</li>
-<li>可自己定义日志等级</li>
-</ul>
-
-
-<p><img src="https://github.com/fpillet/NSLogger/raw/master/Screenshots/mainwindow.png" alt="nslogger mainwindow" /></p>
-
-<h2>安装</h2>
-
-<p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
-LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
-
-<p>NSLogger 支持Pod方式安装,在你的APP中配置Podfile</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pod</span> <span class="s1">&#39;NSLogger&#39;</span>
-</span><span class='line'><span class="n">pod</span> <span class="n">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
-
-<p><a href="/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
-
-<h2>使用</h2>
-
-<ul>
-<li><code>#import "LoggerClient.h"</code></li>
-<li>设置客户端网络监控的配置</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">LoggerSetViewerHost</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="n">CFStringRef</span><span class="p">)</span><span class="err">@“</span><span class="mf">127.0.0.1</span><span class="err">”</span><span class="p">,</span> <span class="p">(</span><span class="n">UInt32</span><span class="p">)</span><span class="mi">50000</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这一段代码可以加在main.m里</p>
-
-<ul>
-<li>除了基本的日志可以打印图片的日志</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">UIImage</span> <span class="o">*</span><span class="n">img</span> <span class="o">=</span> <span class="n">ONEDefaultImageWithName</span><span class="p">(</span><span class="s">@&quot;actionBar&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="n">CGSize</span> <span class="n">sz</span> <span class="o">=</span> <span class="n">img</span><span class="p">.</span><span class="n">size</span><span class="p">;</span>
-</span><span class='line'><span class="n">LogImageData</span><span class="p">(</span><span class="s">@&quot;image&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">UIImagePNGRepresentation</span><span class="p">(</span><span class="n">img</span><span class="p">));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>为了不动原来的NSLog输出日志方式，可以重新定义NSLog</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">define</span> <span class="n">NSLog</span><span class="p">(...)</span> <span class="n">LogMessageF</span><span class="p">(</span> <span class="n">__FILE__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="n">__FUNCTION__</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">__VA_ARGS__</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<ul>
-<li>打开NSLogger Viewer mac端，在Preferences的Network中，勾选 Listen for loggers on TCP port.端口默认</li>
-</ul>
-
-
-<p><strong>友情提示</strong></p>
-
-<ul>
-<li>如果Xcode编译后，没有发送数据到客户端，可以先 clean 一下。</li>
-<li>客户端建议用 TCP 协议连接,这样监听端口可以固定</li>
-<li>点窗口左下角的 f 可以看到对应的日志文件与行号</li>
-</ul>
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
-  
-  
 
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</div>
 <aside class="sidebar">
   
     <section>
@@ -1262,7 +792,7 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
       </li>
     
       <li class="post">
-        <a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 &#8211; NSLogger</a>
+        <a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 -- NSLogger</a>
       </li>
     
   </ul>
@@ -1284,6 +814,7 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
   
 </aside>
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -1298,7 +829,10 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
       var disqus_shortname = 'doruby';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://doruby.com/blog/2013/04/24/arc-with-memory-management/';
+        var disqus_url = 'http://doruby.com/blog/2013/04/24/arc-with-memory-management/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
