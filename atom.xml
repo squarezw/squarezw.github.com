@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2013-04-29T09:41:42+08:00</updated>
+  <updated>2013-05-21T16:51:24+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -12,6 +12,175 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[无线分发应用--通过Safari安装App]]></title>
+    <link href="http://doruby.com/blog/2013/05/21/wireless-app-distribution/"/>
+    <updated>2013-05-21T16:03:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/05/21/wireless-app-distribution</id>
+    <content type="html"><![CDATA[<p>iOS 支持以无线方式安装企业级应用程序，这可让您在不使用 iTunes 的情况下将内部软件分发给用户。</p>
+
+<h2>简单几步：</h2>
+
+<ol>
+<li><p>用户需要将设备的<a href="http://www.innerfence.com/howto/find-iphone-unique-device-identifier-udid">UDID</a>加到 Apple Developer Center 中心的设备里，并更新 .mobileprovision文件</p></li>
+<li><p>Scheme 里将 Archive 的 Build Configuration 换成 Debug 模式</p></li>
+<li><p>Archive 后从 Organizer 找到app文件，生成 ipa 文件</p></li>
+<li><p>生成 plist 文件，将它与 ipa 文件放到服务器上，并可通过网址访问并可下载</p></li>
+<li><p>做一个网页供大家访问后点键接跳转下载此plist, 如果生成将网址生成一个二维码，就更方便了。</p>
+
+<p>比如:</p></li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;itms-services://?action=download-manifest&amp;url=http://example.com/manifest.plist&quot;</span><span class="o">&gt;</span><span class="n">Install</span> <span class="n">App</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>plist 文件模板:</h2>
+
+<ul>
+<li>注: {}里的内容是要替换的</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="o">&lt;?</span><span class="n">xml</span> <span class="n">version</span><span class="o">=</span><span class="s">&quot;1.0&quot;</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;UTF-8&quot;</span><span class="o">?&gt;</span>
+</span><span class='line'><span class="o">&lt;!</span><span class="n">DOCTYPE</span> <span class="n">plist</span> <span class="n">PUBLIC</span> <span class="s">&quot;-//Apple//DTD PLIST 1.0//EN&quot;</span> <span class="s">&quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">plist</span> <span class="n">version</span><span class="o">=</span><span class="s">&quot;1.0&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">items</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">assets</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">kind</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="n">software</span><span class="o">-</span><span class="n">package</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">url</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">{</span><span class="err">你的域名</span><span class="nl">http:</span><span class="c1">//doruby.com/xxx.ipa}&lt;/string&gt;</span>
+</span><span class='line'>              <span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;/</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">metadata</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">bundle</span><span class="o">-</span><span class="n">identifier</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">{</span><span class="err">你的</span><span class="n">bundle</span> <span class="n">identifier</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">bundle</span><span class="o">-</span><span class="n">version</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="mf">1.0</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">kind</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="n">software</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">title</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">{</span><span class="n">App</span><span class="err">名称</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>      <span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;/</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">plist</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>网页模板</h2>
+
+<ul>
+<li>注: {}里的内容是要替换的</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="o">&lt;!</span><span class="n">DOCTYPE</span> <span class="n">html</span> <span class="n">PUBLIC</span> <span class="s">&quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot;</span> <span class="s">&quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">html</span> <span class="n">xmlns</span><span class="o">=</span><span class="s">&quot;http://www.w3.org/1999/xhtml&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">head</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="n">http</span><span class="o">-</span><span class="n">equiv</span><span class="o">=</span><span class="s">&quot;Content-Type&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s">&quot;text/html; charset=UTF-8&quot;</span> <span class="o">/&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;viewport&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s">&quot;width=320, height=460, user-scalable=no,</span>
+</span><span class='line'><span class="n">initial</span><span class="o">-</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="s">&quot; /&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">title</span><span class="o">&gt;</span><span class="n">Install</span> <span class="n">Dev</span> <span class="n">App</span><span class="o">&lt;/</span><span class="n">title</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">head</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">br</span><span class="o">/&gt;&lt;</span><span class="n">br</span><span class="o">/&gt;&lt;</span><span class="n">br</span><span class="o">/&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">body</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">div</span> <span class="n">align</span><span class="o">=</span><span class="s">&quot;center&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;itms-services://?action=download-manifest&amp;url={http://doruby.com/xxx.plist}&quot;</span>  <span class="n">style</span><span class="o">=</span><span class="s">&quot;color:orange; font-size:24px&quot;</span><span class="o">&gt;</span><span class="n">Install</span> <span class="n">the</span> <span class="n">App</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">body</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">html</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>注意:</h2>
+
+<p>可能需要配置你的 Web 服务器以便正确地传输清单文件和应用程序文件。</p>
+
+<ul>
+<li>对于 OS X Server，将以下 MIME 类型添加到 Web 服务的“MIME Types”（MIME 类型）设置中：</li>
+</ul>
+
+
+<p>application/octet-stream ipa
+text/xml plist</p>
+
+<ul>
+<li>对于 IIS，使用 IIS Manager 在服务器的“属性”页面中添加 MIME 类型：</li>
+</ul>
+
+
+<p>.ipa application/octet-stream
+.plist text/xml</p>
+
+<h2>参考:</h2>
+
+<p><a href="http://help.apple.com/iosdeployment-apps/mac/1.1/#app43ad871e">wireless enterprise app distribution</a></p>
+
+<p><a href="http://thirteendaysaweek.com/2012/10/01/enterprise-deployment-of-ios-apps-with-monotouch/">enterprise deployment of ios apps</a></p>
+
+<p>example:</p>
+
+<p><a href="http://www.doruby.com/food.html">my app</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[ARC 与内存管理]]></title>
