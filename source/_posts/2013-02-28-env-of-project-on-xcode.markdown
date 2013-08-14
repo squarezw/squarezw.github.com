@@ -46,21 +46,29 @@ import "ConfigRelease.h"
 ```
 
 
-## 关于共公Macro应该会在哪儿定义比较好的问题
+## 关于各项环境配置应该放在哪儿比较好?
 
-我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立一个 .xcconfig 文件
+我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立不同的 .xcconfig 文件, 然后将Target的配置指向它们
 
-将 PROJECT Info => Configurations => target Based on Configuration File 指向你建立的这个文件。 这样就可以把我们要用到的Macro定义写在这个文件里了。
+比如我们建立一个 Debug.xcconfig, Release.xcconfig
+
+将 PROJECT Info => Configurations => target Based on Configuration File 指向不同环境下的config文件。
 
 ![target configurations](/assets/targetConfigurations.png)
 
 
-比如我们建立一个 Global.xcconfig, 然后指向这个 Configuration file
-
 我们就可以在这个文件上定义自己的Macro了，比如
 
+Debug.xcconfig
+
 ``` objc 
-TestMacroDef = 1 
+TestMacroDef = 1
+```
+
+Release.xcconfig
+
+``` objc 
+TestMacroDef = 0
 ```
 
 你可以在Build Settings中看到User-Defined一栏多了你自定义的Macro
@@ -68,13 +76,21 @@ TestMacroDef = 1
 我们还可以改变或添加系统默认的定义，比如上面在 Preprocessor Macros里定义的内容，可以这样写
 
 ``` objc 
-GCC_PREPROCESSOR_DEFINITIONS = kShareKey=1 $(inherited) // inherited 是继承原有的定义 
+GCC_PREPROCESSOR_DEFINITIONS = kShareKey=1 $(inherited) // inherited 是继承原有的定义
 ```
 
 tips: 你可以选中settings的一栏copy， paste 到这个文件中，即可知道定义方法。
 
-这个文件我们单独拿出来，应用在各个相似项目的共公定义中，供团队使用。
 
+如果我们有一些公共的配置文件，可以创建一个 公共的 xcconfig 文件，然后 include 进来即可。
+
+比如
+
+Debug.xcconfig
+
+``` objc
+#include "Shared.xcconfig"
+```
 
 
 
