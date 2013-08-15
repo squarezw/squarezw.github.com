@@ -19,6 +19,8 @@ categories:
 
 ## 安装
 
+<!-- more -->
+
 NSLogger分为两部分，LoggerClient和NSLogger Viewer，
 LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。
 

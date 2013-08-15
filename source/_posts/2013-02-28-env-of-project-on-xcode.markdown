@@ -48,6 +48,8 @@ import "ConfigRelease.h"
 
 ## 关于各项环境配置应该放在哪儿比较好?
 
+<!-- more -->
+
 我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立不同的 .xcconfig 文件, 然后将Target的配置指向它们
 
 比如我们建立一个 Debug.xcconfig, Release.xcconfig

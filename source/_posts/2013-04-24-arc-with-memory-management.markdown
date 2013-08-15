@@ -25,6 +25,8 @@ ARC is supported in Xcode 4.2 for OS X v10.6 and v10.7 (64-bit applications) and
 
 ## 原理
 
+<!-- more -->
+
 ![ARC Illustration](http://developer.apple.com/library/ios/releasenotes/ObjectiveC/RN-TransitioningToARC/Art/ARC_Illustration.jpg)
 
 	ARC的一个基本原则: 只要某个对象被任一strong指针引用，那么它将不会被销毁。当对象没有被任何strong指针引用时，那么就将被销毁。
