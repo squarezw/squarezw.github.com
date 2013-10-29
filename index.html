@@ -553,6 +553,77 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/08/15/core-bluetooth-for-ios/">iOS 上的蓝牙框架 - Core Bluetooth for iOS [译]</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-08-15T09:52:00+08:00" pubdate data-updated="true">Aug 15<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/08/15/core-bluetooth-for-ios/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>所须环境: iOS 6 以上</p>
+
+<p>原文: <a href="http://weblog.invasivecode.com/post/39707371281/core-bluetooth-for-ios-6-core-bluetooth-was">Core Bluetooth for iOS 6</a></p>
+
+<p>Core Bluetooth 是在iOS5首次引入的，它允许iOS设备可以使用健康，运动，安全，自动化，娱乐，附近等外设数据。在iOS 6 中，这个API被扩展了，让iOS也能成为数据提供方，也就是<code>Server(Peripheral)</code>端，可能使它与其它 iOS 设备交互数据。</p>
+
+<p>Core Bluetooth API 基于BLE4.0规范。这个框架涵盖了BLE标准的所有细节. 不过，仅仅只有新的iOS设备和MAC是兼容BLE标准的: iPhone 4S, iPhone5, Mac Mini, New iPad, MacBook Air, MacBook Pro. 并且 iOS 6 iPhone 模拟器也支持一样的标准.这对你在没有真机时，开发APP时是非常实用的。</p>
+
+<h2>相关的类</h2>
+
+<p>在CoreBluetooth框架中，有两个主要的角色：外设和中心（Peripheral and Central） ，整个框架都是围绕这两个主要角色设计的，它们之间有一系列的回调交换数据。
+下图1展示了外设和中心（<code>Peripheral and Central</code>）的关系。</p>
+
+<p><img src="/assets/core_bluetooth_client_server_naming.png" alt="Fig1" /></p>
+
+<p>外设创建或提供一些数据，中心使用这些设备提供的数据。在iOS6之后，iOS 设备也可以即是外设，也可以是中心，但不能在同时间扮演两个角色。</p>
+
+<p>这两个组件在CoreBluetooth框架中是分别用两个类来表示的，中央是<code>CBCentralManager</code>类，外设是<code>CBPeripheralManager</code>类。</p>
+
+<p>在中心，一个 <code>CBPeripheral</code> 对象表示正在连接中的外设,同样在外设里，一个 <code>CBCentral</code> 表示正在连接中的中心.</p>
+
+<p>你可以理解外设是一个广播数据的设备，它开始告诉外面的世界说它这儿有一些数据，并且能提供一些服务。另一边中心开始扫描外面有没有
+自己所需要的服务，如果发现后，会和外设做连接请求，一旦连接确定后，两个设备就可以传输数据了。</p>
+
+<p>除了中心与外设，我们还得考虑他们用于交互的数据结构，这些数据在Services(服务)中被结构化,每个服务由不同的Characteristics(特性)所组成。特性定义为一种属性类型，并且对应一个逻辑值(比如0x2A49)。</p>
+
+<p>你可以在<a href="http://developer.bluetooth.org">developer bluetooth</a>这里找到标准服务与特性的列表。</p>
+
+<p>比如：</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/08/15/core-bluetooth-for-ios/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/05/21/wireless-app-distribution/">无线分发应用&#8211;通过Safari安装App</a></h1>
     
     
@@ -598,7 +669,7 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 </span></code></pre></td></tr></table></div></figure>
 
 
-
+<h2>plist 文件模板:</h2>
 
 </div>
   
@@ -652,6 +723,14 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <p>很多人担心内存管理不受自己控制，其实这是对于ARC机制了解不足从而不自信，所导致的对新事物的恐惧。</p>
 
 <p>下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。</p>
+
+<h2>需要的基本环境:</h2>
+
+<p>ARC is supported in Xcode 4.2 for OS X v10.6 and v10.7 (64-bit applications) and for iOS 4 and iOS 5. Weak references are not supported in OS X v10.6 and iOS 4.</p>
+
+<p><strong>注意：iOS4 不支持 weak 引用</strong></p>
+
+<h2>原理</h2>
 
 </div>
   
@@ -710,6 +789,8 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 
 <p>无伦从哪个角度来划分模块其实都有各自的优缺点，我们需求上来设计实际的项目，即使他们功能独立，减低耦合，又要使得信息的流转变得简单。 理论讲的差不多了，我们这里除开项目管理的基本要求，比如开发文档，注释规范，各种图等不提，拆分的方式根据你自己的业务需求自行选择拆分方式，这里只讲讲开发中如何协调和整合它们。
 好吧。下面上干货了。</p>
+
+<h2>iOS 团队开发实践</h2>
 
 </div>
   
@@ -774,6 +855,32 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <p>现在想到的更好的方法是直接修改Prefix Header的引用路径</p>
 
 <p>在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.</p>
+
+<p><img src="/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
+
+<p>比如: Test/Config/Test-Prefix-${CONFIGURATION}.pch</p>
+
+<p>我们新建了一个Config目录，然后在里面添加了 Test-Prefix-Debug.pch , Test-Prefix-Release.pch 等不同的环境配置文件.</p>
+
+<p>Test-Prefix-Debug.pch</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigDebug.h&quot;</span>
+</span><span class='line'><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Test-Prefix-Release.pch</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigRelease.h&quot;</span>
+</span><span class='line'><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>关于各项环境配置应该放在哪儿比较好?</h2>
 
 </div>
   
@@ -902,24 +1009,6 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 
 <h2>安装</h2>
 
-<p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
-LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
-
-<p>NSLogger 支持Pod方式安装,在你的APP中配置Podfile</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pod</span> <span class="s1">&#39;NSLogger&#39;</span>
-</span><span class='line'><span class="n">pod</span> <span class="n">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
-
-<p><a href="/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
-
-<h2>使用</h2>
-
 </div>
   
   
@@ -954,6 +1043,10 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
       </li>
     
       <li class="post">
+        <a href="/blog/2013/08/15/core-bluetooth-for-ios/">iOS 上的蓝牙框架 - Core Bluetooth for iOS [译]</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/05/21/wireless-app-distribution/">无线分发应用&#8211;通过Safari安装App</a>
       </li>
     
@@ -963,10 +1056,6 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
     
       <li class="post">
         <a href="/blog/2013/04/12/block-based-design/">模块化设计-iOS团队协作开发 v1.0</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a>
       </li>
     
   </ul>

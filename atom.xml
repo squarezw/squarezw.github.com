@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2013-10-29T13:27:03+08:00</updated>
+  <updated>2013-10-29T14:21:43+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -456,6 +456,600 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
   </entry>
   
   <entry>
+    <title type="html"><![CDATA[iOS 上的蓝牙框架 - Core Bluetooth for iOS [译]]]></title>
+    <link href="http://doruby.com/blog/2013/08/15/core-bluetooth-for-ios/"/>
+    <updated>2013-08-15T09:52:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/08/15/core-bluetooth-for-ios</id>
+    <content type="html"><![CDATA[<p>所须环境: iOS 6 以上</p>
+
+<p>原文: <a href="http://weblog.invasivecode.com/post/39707371281/core-bluetooth-for-ios-6-core-bluetooth-was">Core Bluetooth for iOS 6</a></p>
+
+<p>Core Bluetooth 是在iOS5首次引入的，它允许iOS设备可以使用健康，运动，安全，自动化，娱乐，附近等外设数据。在iOS 6 中，这个API被扩展了，让iOS也能成为数据提供方，也就是<code>Server(Peripheral)</code>端，可能使它与其它 iOS 设备交互数据。</p>
+
+<p>Core Bluetooth API 基于BLE4.0规范。这个框架涵盖了BLE标准的所有细节. 不过，仅仅只有新的iOS设备和MAC是兼容BLE标准的: iPhone 4S, iPhone5, Mac Mini, New iPad, MacBook Air, MacBook Pro. 并且 iOS 6 iPhone 模拟器也支持一样的标准.这对你在没有真机时，开发APP时是非常实用的。</p>
+
+<h2>相关的类</h2>
+
+<p>在CoreBluetooth框架中，有两个主要的角色：外设和中心（Peripheral and Central） ，整个框架都是围绕这两个主要角色设计的，它们之间有一系列的回调交换数据。
+下图1展示了外设和中心（<code>Peripheral and Central</code>）的关系。</p>
+
+<p><img src="http://doruby.com/assets/core_bluetooth_client_server_naming.png" alt="Fig1" /></p>
+
+<p>外设创建或提供一些数据，中心使用这些设备提供的数据。在iOS6之后，iOS 设备也可以即是外设，也可以是中心，但不能在同时间扮演两个角色。</p>
+
+<p>这两个组件在CoreBluetooth框架中是分别用两个类来表示的，中央是<code>CBCentralManager</code>类，外设是<code>CBPeripheralManager</code>类。</p>
+
+<p>在中心，一个 <code>CBPeripheral</code> 对象表示正在连接中的外设,同样在外设里，一个 <code>CBCentral</code> 表示正在连接中的中心.</p>
+
+<p>你可以理解外设是一个广播数据的设备，它开始告诉外面的世界说它这儿有一些数据，并且能提供一些服务。另一边中心开始扫描外面有没有
+自己所需要的服务，如果发现后，会和外设做连接请求，一旦连接确定后，两个设备就可以传输数据了。</p>
+
+<p>除了中心与外设，我们还得考虑他们用于交互的数据结构，这些数据在Services(服务)中被结构化,每个服务由不同的Characteristics(特性)所组成。特性定义为一种属性类型，并且对应一个逻辑值(比如0x2A49)。</p>
+
+<p>你可以在<a href="http://developer.bluetooth.org">developer bluetooth</a>这里找到标准服务与特性的列表。</p>
+
+<p>比如：</p>
+
+<!-- more -->
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#Services:</span>
+</span><span class='line'>
+</span><span class='line'><span class="nl">SpecificationName:</span> <span class="n">Blood</span> <span class="n">Pressure</span>
+</span><span class='line'><span class="nl">SpecificationType:</span> <span class="n">org</span><span class="p">.</span><span class="n">bluetooth</span><span class="p">.</span><span class="n">service</span><span class="p">.</span><span class="n">blood_pressure</span>
+</span><span class='line'><span class="nl">AssignedNumber:</span> <span class="mh">0x1810</span>
+</span><span class='line'><span class="nl">SpecificationLevel:</span> <span class="n">Adopted</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#Characteristics:</span>
+</span><span class='line'>
+</span><span class='line'><span class="nl">SpecificationName:</span> <span class="n">Blood</span> <span class="n">Pressure</span> <span class="n">Feature</span>
+</span><span class='line'><span class="nl">SpecificationType:</span> <span class="n">org</span><span class="p">.</span><span class="n">bluetooth</span><span class="p">.</span><span class="n">characteristic</span><span class="p">.</span><span class="n">blood_pressure_feature</span>
+</span><span class='line'><span class="nl">AssignedNumber:</span> <span class="mh">0x2A49</span>
+</span><span class='line'><span class="nl">SpecificationLevel:</span> <span class="n">Adopted</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在中心里，服务由 <code>CBService</code> 类表示，每个服务由代表特性的 <code>CBCharacteristic</code>类所构成。</p>
+
+<p>同样，在外设中服务与特性由 <code>CBMutableService</code> 与 <code>CBMutableCharacteristicclass</code> 类表示。</p>
+
+<p>下图解释了他们之间的关系:</p>
+
+<p><img src="http://doruby.com/assets/objects_involved_in_core_bluetooth.png" alt="Fig2" /></p>
+
+<p><code>CBUUID</code> 和 <code>CBATTRequest</code> 是两个苹果提供给我们的帮助类，以便于开发者更简单地操作数据，稍后你将看到如何使用它们。</p>
+
+<h2>使用</h2>
+
+<p>不幸的是，Apple提供的文档目前还不完整，你只有通过WWDC上两个关于 Core Bluetooth的视频和头文件，去理解这个框架是如何工作的。不过，因为我之前已经做过相关方面的事情，我决定和你分享这些内容，我希望下面的教程可以帮助到你。你也可以通过 http://training.invasivecode.com 查看我们的培训课程.</p>
+
+<h4>创建外设 (Peripheral)</h4>
+
+<p>为了可以创建一个完整的例子，你需要两台iOS设备，我将向你展示如何通过蓝牙连接这两个设备，并交换数据。记住先检查一下你的设备是不是被BLE所支持的。</p>
+
+<p>开始创建一个外设需要下面几步：</p>
+
+<p>1.创建并且开始Peripheral Manager</p>
+
+<p>2.设置并且发布它的服务。</p>
+
+<p>3.广播这个服务。</p>
+
+<p>4.和中心连接。</p>
+
+<p>用Single-View Application模板创建一个新的Xcode工程。命名为BlueServer （使用ARC）。工程创建完成后，添加CoreBluetooth.framework 框架。然后打开ViewController.h文件，并且添加以下代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &lt;CoreBluetooth/CoreBluetooth.h&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使view controller 遵循 <code>CBPeripheralManagerDelegate</code> 协议，然后添加这个属性：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">strong</span><span class="p">)</span> <span class="n">CBPeripheralManager</span> <span class="o">*</span><span class="n">manager</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在ViewController.m中，添加以下代码到viewDidLoad方法中：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">self</span><span class="p">.</span><span class="n">manager</span> <span class="o">=</span> <span class="p">[[</span><span class="n">CBPeripheralManager</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithDelegate:</span><span class="n">self</span> <span class="nl">queue:</span><span class="nb">nil</span><span class="p">];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这行代码初始化了一个 Peripheral Manager (计划中的第一项). 第一个参数是设置delegate(这里的例子就是view controller)。第二参数(队列)设置为了nil,因为Peripheral Manager 将运行在主线程中。如果你想用同步的线程做更复杂的事情，你需要单独创建一个队列并把它放在这个参数中。</p>
+
+<p>一旦Peripheral Manager被初始化后，我们需要及时检查正在运行的App设备状态，是不是符合BLE标准的。所以你要实现下面的这个代理方法（如果设备不支持BLE,你可以友好地提醒用户。你还可以通过拿到的状态值做更多事情）。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">peripheralManagerDidUpdateState:</span><span class="p">(</span><span class="n">CBPeripheralManager</span> <span class="o">*</span><span class="p">)</span><span class="nv">peripheral</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">switch</span> <span class="p">(</span><span class="n">peripheral</span><span class="p">.</span><span class="n">state</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">case</span> <span class="nl">CBPeripheralManagerStatePoweredOn:</span>
+</span><span class='line'>            <span class="p">[</span><span class="n">self</span> <span class="n">setupService</span><span class="p">];</span>
+</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">default</span><span class="o">:</span>
+</span><span class='line'>            <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Peripheral Manager did change state&quot;</span><span class="p">);</span>
+</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这里，我检查了外设的状态，如果它的状态是<code>CBPeripheralManagerStatePoweredOn</code>，那这个设备是支持BLE并可以继续执行。</p>
+
+<p>外设的状态包括有下面这些</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>
+</span><span class='line'>   <span class="n">CBPeripheralManagerStateUnknown</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>   <span class="n">CBPeripheralManagerStateResetting</span><span class="p">,</span>
+</span><span class='line'>   <span class="n">CBPeripheralManagerStateUnsupported</span><span class="p">,</span>
+</span><span class='line'>   <span class="n">CBPeripheralManagerStateUnauthorized</span><span class="p">,</span>
+</span><span class='line'>   <span class="n">CBPeripheralManagerStatePoweredOff</span><span class="p">,</span>
+</span><span class='line'>   <span class="n">CBPeripheralManagerStatePoweredOn</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span> <span class="n">CBPeripheralManagerState</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>服务与特性 (Service &amp; Characteristic)</h2>
+
+<p>setupService 是一个辅助方法，我们让它去准备服务和特性，对于这个例子，我们仅仅需要一个服务和一个特性。</p>
+
+<p>每一个服务和特性必要有一个UUID来标识，UUID是一个16位或128位的值。如果你创建的是一个 client-server(中央-外设)应用，那么你需要创建属于你自己的128位UUID，你必须确保它不能和其他已经存在的服务冲突，如果你要创建一个新的设备，你需要去符合标准委员会的UUID。</p>
+
+<p>如果你创建的是你自己的client-server(正如我们现在做的)，我建议你在Terminal下用 uuidgen 命令创建128位的UUID. 所以打开 Terminal并创建两个（一个为服务，一个为特性）.之后，你需要将他们添加到中心和外设应用。这里我们先添加下面几行在 view controller中。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">static</span> <span class="n">NSString</span> <span class="o">*</span> <span class="k">const</span> <span class="n">kServiceUUID</span> <span class="o">=</span> <span class="s">@&quot;6BC6543C-2398-4E4A-AF28-E4E0BF58D6BC&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="k">static</span> <span class="n">NSString</span> <span class="o">*</span> <span class="k">const</span> <span class="n">kCharacteristicUUID</span> <span class="o">=</span> <span class="s">@&quot;9D69C18C-186C-45EA-A7DA-6ED7500E9C97&quot;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意：这里的UUID每个人生成的都不一样，最好是你自己生成</p>
+
+<p>这里是 setupService 的实现方法:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">setupService</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Creates the characteristic UUID</span>
+</span><span class='line'>    <span class="n">CBUUID</span> <span class="o">*</span><span class="n">characteristicUUID</span> <span class="o">=</span> <span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kCharacteristicUUID</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Creates the characteristic</span>
+</span><span class='line'>    <span class="n">self</span><span class="p">.</span><span class="n">customCharacteristic</span> <span class="o">=</span> <span class="p">[[</span><span class="n">CBMutableCharacteristic</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithType:</span><span class="n">characteristicUUID</span> <span class="nl">properties:</span><span class="n">CBCharacteristicPropertyNotify</span> <span class="nl">value:</span><span class="nb">nil</span> <span class="nl">permissions:</span><span class="n">CBAttributePermissionsReadable</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Creates the service UUID</span>
+</span><span class='line'>    <span class="n">CBUUID</span> <span class="o">*</span><span class="n">serviceUUID</span> <span class="o">=</span> <span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kServiceUUID</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Creates the service and adds the characteristic to it</span>
+</span><span class='line'>    <span class="n">self</span><span class="p">.</span><span class="n">customService</span> <span class="o">=</span> <span class="p">[[</span><span class="n">CBMutableService</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithType:</span><span class="n">serviceUUID</span> <span class="nl">primary:</span><span class="n">YES</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Sets the characteristics for this service</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">customService</span> <span class="nl">setCharacteristics:</span><span class="err">@</span><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">customCharacteristic</span><span class="p">]];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Publishes the service</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">peripheralManager</span> <span class="nl">addService:</span><span class="n">self</span><span class="p">.</span><span class="n">customService</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>首先，我使用<code>+UUIDWithString:</code>方法创建了一个 UUID 对象，之后我用这个 UUID对象创建了特性。注意，我在初始化时，第三个参数传的是nil (那个value)，之所以这样做，是因为我告诉 Core Bluetooth我将稍候添加这个特性值，当你需要动态创建数据时，经常这么做。如果你已经有一个静态的值，你可以直接传它。</p>
+
+<p>在这个方法中，第一个参数是先创建好的UUID,第二个参数(那个 properties)确定你将如何使用这个特性值，下面是这些可能的值：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="nl">CBCharacteristicPropertyBroadcast:</span> <span class="err">允许一个广播特性值</span><span class="p">,</span><span class="err">用于描述特性配置，不允许本地特性</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyRead:</span> <span class="err">允许读一个特性值</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyWriteWithoutResponse:</span> <span class="err">允许写一个特性值，没有反馈</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyWrite:</span> <span class="err">允许写一个特性值</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyNotify:</span> <span class="err">允许通知一个特性值，没有反馈</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyIndicate:</span> <span class="err">允许标识一个特性值</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyAuthenticatedSignedWrites:</span> <span class="err">允许签名一个可写的特性值</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyExtendedProperties:</span> <span class="err">如果设置后，附加特性属性为一个扩展的属性说明，不允许本地特性</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyNotifyEncryptionRequired:</span> <span class="err">如果设置后，仅允许信任的设备可以打开通知特性值</span>
+</span><span class='line'><span class="nl">CBCharacteristicPropertyIndicateEncryptionRequired:</span> <span class="err">如果设置后，仅允许信任的设备可以打开标识特性值</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后一个参数是属性的读、写、加密权限，有以下几种：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">CBAttributePermissionsReadable</span>
+</span><span class='line'><span class="n">CBAttributePermissionsWriteable</span>
+</span><span class='line'><span class="n">CBAttributePermissionsReadEncryptionRequired</span>
+</span><span class='line'><span class="n">CBAttributePermissionsWriteEncryptionRequired</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>创建特性后，我同样通过<code>+UUIDWithString:</code>方法创建 UUID，然后通过它创建了服务。 最后我为服务设置对应的这个特性。记住，每个服务可以包括多个特性，正如下面的图3</p>
+
+<p><img src="http://doruby.com/assets/services_and_characteristics.png" alt="Fig3" /></p>
+
+<p>所以我们需要通过一个特性数组来添加到服务中，在这个例子里，这个数组对象只有一个特性。</p>
+
+<p>最后一行的代码是将服务添加到 Peripheral Manager中，用于发布这个服务。一旦这样做之后，Peripheral Manager 将会通知它的 delegate调用<code>peripheralManager:didAddService:error:</code>方法。这里如果没有错误，你可以开始广播这个服务。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">peripheralManager:</span><span class="p">(</span><span class="n">CBPeripheralManager</span> <span class="o">*</span><span class="p">)</span><span class="nv">peripheral</span> <span class="nf">didAddService:</span><span class="p">(</span><span class="n">CBService</span> <span class="o">*</span><span class="p">)</span><span class="nv">service</span> <span class="nf">error:</span><span class="p">(</span><span class="n">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="nb">nil</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// Starts advertising the service</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">peripheralManager</span> <span class="nl">startAdvertising:</span><span class="err">@</span><span class="p">{</span> <span class="n">CBAdvertisementDataLocalNameKey</span> <span class="o">:</span> <span class="s">@&quot;ICServer&quot;</span><span class="p">,</span> <span class="n">CBAdvertisementDataServiceUUIDsKey</span> <span class="o">:</span> <span class="err">@</span><span class="p">[[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kServiceUUID</span><span class="p">]]</span> <span class="p">}];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当Peripheral Manager开始广播这个服务时，delegate 会接收到 <code>peripheralManagerDidStartAdvertising:error:</code> 消息。当中心订阅
+了这个服务时，它的delegate会收到 <code>peripheralManager:central:didSubscribeToCharacteristic:</code>消息，这儿你可以生成动态数据给中心。</p>
+
+<p>现在，发送数据给中心你需要预先写一些数据的代码，然后发送<code>updateValue:forCharacteristic:onSubscribedCentrals:</code>到外设。</p>
+
+<h2>创建一个中心 (Central)</h2>
+
+<p>现在，我们已经有了一个外设，让我们创建中心(client)。记住，中心是用来处理外设提供的数据的。如上面的图2所示，这里的中心被 <code>CBCentralManager</code> 对象表示。</p>
+
+<p>让我们创建一个名字为 BlueClient 的 Xcode 项目，使用ARC,并添加 CoreBluetooth.framework ，在 view controller 头添加</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &lt;CoreBluetooth/CoreBluetooth.h&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在中心，你必须遵循两个协议: CBCentralManagerDelegate 和 CBPeripheralDelegate</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">ViewController</span> : <span class="nc">UIViewController</span> <span class="o">&lt;</span><span class="n">CBCentralManagerDelegate</span><span class="p">,</span> <span class="n">CBPeripheralDelegate</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>并添加两个属性:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">strong</span><span class="p">)</span> <span class="n">CBCentralManager</span> <span class="o">*</span><span class="n">manager</span><span class="p">;</span>
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">strong</span><span class="p">)</span> <span class="n">NSMutableData</span> <span class="o">*</span><span class="n">data</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在正如我们之前为外设创建的做法一样，我们创建中心对象:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">self</span><span class="p">.</span><span class="n">manager</span> <span class="o">=</span> <span class="p">[[</span><span class="n">CBCentralManager</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithDelegate:</span><span class="n">self</span> <span class="nl">queue:</span><span class="nb">nil</span><span class="p">];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同样，这里的第一个参数表示 CBCentralManager delegate (这里是 view controller). 第二个参数和之前一样也表示调度队列，如果设置为空，他会使用主队列。</p>
+
+<p>一旦 Central Manager 初始化后，我们同样也要检查它的状态，是不是被 BLE 所支持的APP，实现下面的delegate 方法:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">centralManagerDidUpdateState:</span><span class="p">(</span><span class="n">CBCentralManager</span> <span class="o">*</span><span class="p">)</span><span class="nv">central</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">switch</span> <span class="p">(</span><span class="n">central</span><span class="p">.</span><span class="n">state</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">case</span> <span class="nl">CBCentralManagerStatePoweredOn:</span>
+</span><span class='line'>            <span class="c1">// Scans for any peripheral</span>
+</span><span class='line'>            <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">manager</span> <span class="nl">scanForPeripheralsWithServices:</span><span class="err">@</span><span class="p">[</span> <span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kServiceUUID</span><span class="p">]</span> <span class="p">]</span> <span class="nl">options:</span><span class="err">@</span><span class="p">{</span><span class="n">CBCentralManagerScanOptionAllowDuplicatesKey</span> <span class="o">:</span> <span class="err">@</span><span class="n">YES</span> <span class="p">}];</span>
+</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">default</span><span class="o">:</span>
+</span><span class='line'>            <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Central Manager did change state&quot;</span><span class="p">);</span>
+</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个<code>scanForPeripheralsWithServices:options:</code> 方法用于告诉 Central Manager 开始查看特别的服务，如果你第一个参数用的是nil，这个Central Manager 开始查看所有服务。</p>
+
+<p>这个 kServiceUUID 和创建外设中的 ServiceUUID 一样。所以我们再次添加下面2行代码在你的实现类中。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">static</span> <span class="n">NSString</span> <span class="o">*</span> <span class="k">const</span> <span class="n">kServiceUUID</span> <span class="o">=</span> <span class="s">@&quot;6BC6543C-2398-4E4A-AF28-E4E0BF58D6BC&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="k">static</span> <span class="n">NSString</span> <span class="o">*</span> <span class="k">const</span> <span class="n">kCharacteristicUUID</span> <span class="o">=</span> <span class="s">@&quot;9D69C18C-186C-45EA-A7DA-6ED7500E9C97&quot;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一旦一个外设在扫描时被发现后，中心 delegate 会收到下面的回调：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">centralManager:</span><span class="p">(</span><span class="n">CBCentralManager</span> <span class="o">*</span><span class="p">)</span><span class="nv">central</span> <span class="nf">didDiscoverPeripheral:</span><span class="p">(</span><span class="n">CBPeripheral</span> <span class="o">*</span><span class="p">)</span><span class="nv">peripheral</span> <span class="nf">advertisementData:</span><span class="p">(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">advertisementData</span> <span class="nf">RSSI:</span><span class="p">(</span><span class="n">NSNumber</span> <span class="o">*</span><span class="p">)</span><span class="nv">RSSI</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个调用通知Central Manager delegate（在这个例子中就是view controller），一个附带着广播数据和信号质量(RSSI-Received Signal Strength Indicator)的周边被发现。这是一个很酷的参数，知道了信号质量，你可以用它去估计中心与外设的距离。</p>
+
+<p>任何广播或扫描的响应数据保存在advertisementData 中，可以通过CBAdvertisementData key来访问它。现在，你可以停止扫描，去连接外设了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">centralManager:</span><span class="p">(</span><span class="n">CBCentralManager</span> <span class="o">*</span><span class="p">)</span><span class="nv">central</span> <span class="nf">didDiscoverPeripheral:</span><span class="p">(</span><span class="n">CBPeripheral</span> <span class="o">*</span><span class="p">)</span><span class="nv">peripheral</span> <span class="nf">advertisementData:</span><span class="p">(</span><span class="n">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">advertisementData</span> <span class="nf">RSSI:</span><span class="p">(</span><span class="n">NSNumber</span> <span class="o">*</span><span class="p">)</span><span class="nv">RSSI</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Stops scanning for peripheral</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">manager</span> <span class="n">stopScan</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">peripheral</span> <span class="o">!=</span> <span class="n">peripheral</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">self</span><span class="p">.</span><span class="n">peripheral</span> <span class="o">=</span> <span class="n">peripheral</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Connecting to peripheral %@&quot;</span><span class="p">,</span> <span class="n">peripheral</span><span class="p">);</span>
+</span><span class='line'>        <span class="c1">// Connects to the discovered peripheral</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">manager</span> <span class="nl">connectPeripheral:</span><span class="n">peripheral</span> <span class="nl">options:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>options 参数是一个可选的字典(NSDictionary)，如果需要，可以用以下的键(keys), 它们的值始终是一个boolean。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="nl">CBConnectPeripheralOptionNotifyOnConnectionKey:</span> <span class="err">这是一个</span><span class="n">NSNumber</span><span class="p">(</span><span class="n">Boolean</span><span class="p">)</span><span class="err">，表示系统会为获得的外设显示一个提示，当成功连接后这个应用被挂起，这对于没有运行在中心后台模式并不显示他们自己的提示时是有用的。如果有更多的外设连接后都会发送通知，如果附近的外设运行在前台则会收到这个提示。</span>
+</span><span class='line'><span class="nl">CBConnectPeripheralOptionNotifyOnDisconnectionKey:</span>  <span class="err">这是一个</span><span class="n">NSNumber</span><span class="p">(</span><span class="n">Boolean</span><span class="p">),</span> <span class="err">表示系统会为获得的外设显示一个关闭提示，如果这个时候关闭了连接，这个应用会挂起。</span>
+</span><span class='line'><span class="nl">CBConnectPeripheralOptionNotifyOnNotificationKey:</span> <span class="err">这是一个</span><span class="n">NSNumber</span><span class="p">(</span><span class="n">Boolean</span><span class="p">)</span><span class="err">，表示系统会为获得的外设收到通知后显示一个提示，这个时候应用是被挂起的。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>基于连接的结果，delegate会接收</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="nf">centralManager:didFailToConnectPeripheral:error:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或者</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="nf">centralManager:didConnectPeripheral:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>中的一个。如果成功了，你可以询问正在广播服务的那个外设。因此，在didConnectPeripheral 回调中，你可以写以下代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">centralManager:</span><span class="p">(</span><span class="n">CBCentralManager</span> <span class="o">*</span><span class="p">)</span><span class="nv">central</span> <span class="nf">didConnectPeripheral:</span><span class="p">(</span><span class="n">CBPeripheral</span> <span class="o">*</span><span class="p">)</span><span class="nv">peripheral</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Clears the data that we may already have</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">data</span> <span class="nl">setLength:</span><span class="mi">0</span><span class="p">];</span>
+</span><span class='line'>    <span class="c1">// Sets the peripheral delegate</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">peripheral</span> <span class="nl">setDelegate:</span><span class="n">self</span><span class="p">];</span>
+</span><span class='line'>    <span class="c1">// Asks the peripheral to discover the service</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">peripheral</span> <span class="nl">discoverServices:</span><span class="err">@</span><span class="p">[</span> <span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kServiceUUID</span><span class="p">]</span> <span class="p">]];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在，外设开始用一串回调通知它的delegate。在上面一个方法中，我请求外设去寻找服务，外设代理收到 -peripheral:didDiscoverServices:
+如果没有错误，外设可以去查找服务所提供特性，你可以这样做。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">peripheral:</span><span class="p">(</span><span class="n">CBPeripheral</span> <span class="o">*</span><span class="p">)</span><span class="nv">aPeripheral</span> <span class="nf">didDiscoverServices:</span><span class="p">(</span><span class="n">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Error discovering service: %@&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">error</span> <span class="n">localizedDescription</span><span class="p">]);</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">self</span> <span class="n">cleanup</span><span class="p">];</span>
+</span><span class='line'>        <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">CBService</span> <span class="o">*</span><span class="n">service</span> <span class="k">in</span> <span class="n">aPeripheral</span><span class="p">.</span><span class="n">services</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Service found with UUID: %@&quot;</span><span class="p">,</span> <span class="n">service</span><span class="p">.</span><span class="n">UUID</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Discovers the characteristics for a given service</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">([</span><span class="n">service</span><span class="p">.</span><span class="n">UUID</span> <span class="nl">isEqual:</span><span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kServiceUUID</span><span class="p">]])</span> <span class="p">{</span>
+</span><span class='line'>            <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">peripheral</span> <span class="nl">discoverCharacteristics:</span><span class="err">@</span><span class="p">[[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kCharacteristicUUID</span><span class="p">]]</span> <span class="nl">forService:</span><span class="n">service</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在，如果一个特性被发现，外设delegate 又会接收</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="nl">peripheral:didDiscoverCharacteristicsForService:error:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">peripheral:</span><span class="p">(</span><span class="n">CBPeripheral</span> <span class="o">*</span><span class="p">)</span><span class="nv">peripheral</span> <span class="nf">didDiscoverCharacteristicsForService:</span><span class="p">(</span><span class="n">CBService</span> <span class="o">*</span><span class="p">)</span><span class="nv">service</span> <span class="nf">error:</span><span class="p">(</span><span class="n">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Error discovering characteristic: %@&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">error</span> <span class="n">localizedDescription</span><span class="p">]);</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">self</span> <span class="n">cleanup</span><span class="p">];</span>
+</span><span class='line'>        <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">([</span><span class="n">service</span><span class="p">.</span><span class="n">UUID</span> <span class="nl">isEqual:</span><span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kServiceUUID</span><span class="p">]])</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="n">CBCharacteristic</span> <span class="o">*</span><span class="n">characteristic</span> <span class="k">in</span> <span class="n">service</span><span class="p">.</span><span class="n">characteristics</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">([</span><span class="n">characteristic</span><span class="p">.</span><span class="n">UUID</span> <span class="nl">isEqual:</span><span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kCharacteristicUUID</span><span class="p">]])</span> <span class="p">{</span>
+</span><span class='line'>                <span class="p">[</span><span class="n">peripheral</span> <span class="nl">setNotifyValue:</span><span class="n">YES</span> <span class="nl">forCharacteristic:</span><span class="n">characteristic</span><span class="p">];</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一旦特征的值用<code>setNotifyValue:forCharacteristic:</code> 更新后，外设就会通知它的delegate。</p>
+
+<p>外设的 delegate 就会接收到</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="nl">peripheral:didUpdateNotificationStateForCharacteristic:error:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里，你可以用 <code>readValueForCharacteristic:</code> 读到新的值</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">peripheral:</span><span class="p">(</span><span class="n">CBPeripheral</span> <span class="o">*</span><span class="p">)</span><span class="nv">peripheral</span> <span class="nf">didUpdateNotificationStateForCharacteristic:</span><span class="p">(</span><span class="n">CBCharacteristic</span> <span class="o">*</span><span class="p">)</span><span class="nv">characteristic</span> <span class="nf">error:</span><span class="p">(</span><span class="n">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Error changing notification state: %@&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">.</span><span class="n">localizedDescription</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Exits if it&#39;s not the transfer characteristic</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">characteristic</span><span class="p">.</span><span class="n">UUID</span> <span class="nl">isEqual:</span><span class="p">[</span><span class="n">CBUUID</span> <span class="nl">UUIDWithString:</span><span class="n">kCharacteristicUUID</span><span class="p">]])</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Notification has started</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">characteristic</span><span class="p">.</span><span class="n">isNotifying</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Notification began on %@&quot;</span><span class="p">,</span> <span class="n">characteristic</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">peripheral</span> <span class="nl">readValueForCharacteristic:</span><span class="n">characteristic</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="c1">// Notification has stopped</span>
+</span><span class='line'>        <span class="c1">// so disconnect from the peripheral</span>
+</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Notification stopped on %@.  Disconnecting&quot;</span><span class="p">,</span> <span class="n">characteristic</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">manager</span> <span class="nl">cancelPeripheralConnection:</span><span class="n">self</span><span class="p">.</span><span class="n">peripheral</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当外设发送新的值时，外设的 delegate 会收到 <code>peripheral:didUpdateValueForCharacteristic:error:</code>，这个方法的第二个参数包含特性，你可以用 <code>-value</code> 属性来读它，这是一个包含了特性值的NSData。</p>
+
+<p>这个时候，你可以为其它数据断开或等待。</p>
+
+<h2>总结</h2>
+
+<p>我为你展示了如何使用 Core Bluetooth 框架的基本示例，我希望通过这个教程，加上WWDC视频，有用的一些文档能帮助你创建一个 BLE 项目，同时你也可以去参考一些文档示例，那你会发现我这教程中所有的 delegate 方法。</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[无线分发应用--通过Safari安装App]]></title>
     <link href="http://doruby.com/blog/2013/05/21/wireless-app-distribution/"/>
     <updated>2013-05-21T16:03:00+08:00</updated>
@@ -480,12 +1074,10 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 </span></code></pre></td></tr></table></div></figure>
 
 
-
+<h2>plist 文件模板:</h2>
 
 <!-- more -->
 
-
-<h2>plist 文件模板:</h2>
 
 <ul>
 <li>注: {}里的内容是要替换的</li>
@@ -648,9 +1240,6 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 
 <p>下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。</p>
 
-<!-- more -->
-
-
 <h2>需要的基本环境:</h2>
 
 <p>ARC is supported in Xcode 4.2 for OS X v10.6 and v10.7 (64-bit applications) and for iOS 4 and iOS 5. Weak references are not supported in OS X v10.6 and iOS 4.</p>
@@ -658,6 +1247,9 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <p><strong>注意：iOS4 不支持 weak 引用</strong></p>
 
 <h2>原理</h2>
+
+<!-- more -->
+
 
 <p><img src="http://developer.apple.com/library/ios/releasenotes/ObjectiveC/RN-TransitioningToARC/Art/ARC_Illustration.jpg" alt="ARC Illustration" /></p>
 
@@ -1272,10 +1864,10 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 <p>无伦从哪个角度来划分模块其实都有各自的优缺点，我们需求上来设计实际的项目，即使他们功能独立，减低耦合，又要使得信息的流转变得简单。 理论讲的差不多了，我们这里除开项目管理的基本要求，比如开发文档，注释规范，各种图等不提，拆分的方式根据你自己的业务需求自行选择拆分方式，这里只讲讲开发中如何协调和整合它们。
 好吧。下面上干货了。</p>
 
+<h2>iOS 团队开发实践</h2>
+
 <!-- more -->
 
-
-<h2>iOS 团队开发实践</h2>
 
 <p>我们先把现在遇到的问题列出来，然后一一解决。</p>
 
@@ -1356,9 +1948,6 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 
 <p>在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.</p>
 
-<!-- more -->
-
-
 <p><img src="http://doruby.com/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
 
 <p>比如: Test/Config/Test-Prefix-${CONFIGURATION}.pch</p>
@@ -1384,6 +1973,9 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 
 
 <h2>关于各项环境配置应该放在哪儿比较好?</h2>
+
+<!-- more -->
+
 
 <p>我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立不同的 .xcconfig 文件, 然后将Target的配置指向它们</p>
 
@@ -1576,6 +2168,9 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 
 <h2>安装</h2>
 
+<!-- more -->
+
+
 <p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
 LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
 
@@ -1593,9 +2188,6 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
 <p><a href="http://doruby.com/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
 
 <h2>使用</h2>
-
-<!-- more -->
-
 
 <ul>
 <li><code>#import "LoggerClient.h"</code></li>
