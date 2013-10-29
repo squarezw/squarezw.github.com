@@ -9,8 +9,7 @@
   <meta name="author" content="square">
 
   
-  <meta name="description" content="iOS 支持以无线方式安装企业级应用程序，这可让您在不使用 iTunes 的情况下将内部软件分发给用户。 简单几步： 用户需要将设备的UDID加到 Apple Developer Center 中心的设备里，并更新 .mobileprovision文件
-Scheme 里将 Archive 的 &hellip;">
+  <meta name="description" content="很早就想写一篇关于调试和测试的文章了。一直没写的原因一方面是工作太忙，一方面是现在新的调试工具和调试方法层出不穷，不知道什么时候现在用的方法就会过时，所以一直犹豫是不是等到有一个系统的方案出来在总结一下，不过我觉得还是现在先把能想到和用到写下来，让大家一起探讨。 注： &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +76,465 @@ Scheme 里将 Archive 的 &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/10/18/how-to-debug-our-app/">调试我们的iOS APP</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-18T16:58:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>很早就想写一篇关于调试和测试的文章了。一直没写的原因一方面是工作太忙，一方面是现在新的调试工具和调试方法层出不穷，不知道什么时候现在用的方法就会过时，所以一直犹豫是不是等到有一个系统的方案出来在总结一下，不过我觉得还是现在先把能想到和用到写下来，让大家一起探讨。</p>
+
+<p><strong>注：以下部分英文原文因本人翻译水平有限，不能给出准确的中文释义，所以将引用的原文进行了保留。</strong></p>
+
+<p>关于如何来调试我们的APP，其实是可以从不同的维度来划分，比如应用调试，测试，错误分析等。我们先从最基本的调试工具入手一步步介绍。</p>
+
+<h2>XCode Debug Tools</h2>
+
+<ul>
+<li><p><strong>Debugger</strong></p>
+
+<p>首先 Xcode 默认设置了你所用的 Debugger</p>
+
+<p><img src="/assets/setting_debugger.png" alt="Debugger Setting" /></p>
+
+<p>通常我们这里用默认的<a href="http://lldb.llvm.org/">LLDB</a>,   XCode5之后默认就是用 LLDB了，XCode5以前还有 GDB。</p>
+
+<p>使用LLDB之后，我们通常是在代码执行的地方，打上断点，如：</p>
+
+<p><img src="/assets/set_breakpoint.png" alt="Set BreakPoint" /></p>
+
+<p>这样程序运行遇到断点后会停下等待，这时我们可以在控制台，使用一些调试命令输出我们所需要的对象信息:</p>
+
+<p><img src="/assets/control_po.png" alt="Control NSLog" /></p>
+
+<p>  还有很多命令:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[self.view recursiveDescription]  # 递归打印view
+</span><span class='line'>image lookup --address 0xffffff</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  更多调试命令可以参考上面的 LLDB 介绍，或用 help 命令显示帮助。</p>
+
+<blockquote><p>需要注意的是当Optimization Level不为None时，断点的定位会有差异，所以建议在Target 为 Debug 时调试更为准确，如果一定要在Release模式下调试，可以手动设置为Optimization Level 为 None</p></blockquote>
+
+<p>  如果想看全部的信息，可以点这里选择:</p>
+
+<p>  <img src="/assets/all_variables.png" alt="ALL Variables" /></p>
+
+<hr />
+
+<ul>
+<li><p><strong>Global Symbolic BreakPoints</strong></p>
+
+<p>除了上面的指定断点设置，还可以设置Global Point, 作用域在当前用户的所有project，添加的Breakpoint 的方式有好几种，而且还可以以不同的方式呈现，比如日志输入，语音提醒等，可以在Action参数中设置。</p>
+
+<p>BreakPoint 其中有几种设定类型，其中有：</p>
+
+<ol>
+<li><p>Symbolic Breakpoint</p>
+
+<p> 我们可以添加指定的方法为断点。比如添加一个 viewDidLoad Symbol，会在运行到所有的viewDidLoad方法时停下. 如果你要添加某个特定类的实例方法，可以用 -[类名 实例方法名]。类方法是 +[类名 方法名]</p>
+
+<p> <img src="/assets/symbolic_breakpoint.png" alt="Symbolic Breakpoint" /></p>
+
+<ul>
+<li>如果你不知道这个方法格式应该如何书写，可以在你想要打断点的方法里先做断点，然后查看左边的Show the Debugger Navigator, 里的 Thread 指向的方法名:</li>
+</ul>
+
+
+<p> <img src="/assets/show_the_debugger_navigator.png" alt="Show The Debugger Navigator" /></p>
+
+<p> 看到 0 后面的方法调用了吗？</p></li>
+<li><p>Exception Breakpoint</p>
+
+<p> 另一个非常有用的断点设定,</p>
+
+<p> 在开发中除了用断点调试我们的应用分析问题外，还有一种情况是，我们向被释放的对象发送了消息，导致的crash (EXC_BAD_ACCESS)。</p>
+
+<p> 关于Zombie:</p>
+
+<blockquote><p>在 Cocoa 中，zombies 是一种即使生命终止了也会到惹麻烦的对象。我们可以做的是启动一个编译设置，使对象的引用计数降为0的时候不被释放，而是将它们转化为NSZombie对象。这个类的目的是记录任何对它的实例的调用，因为这意味着代码企图用一个已经消亡的对象调用方法。</p></blockquote>
+
+<p> 通常我们的做法是通过设定 Exception Breakpoint 来统一排错，其中也包括了些类情况, 所以这个断点设定的方法来检查类似情况变得非常实用。</p>
+
+<p> <img src="/assets/exception_breakpoint_menu.png" alt="Exception Breakpoint Menu" /></p>
+
+<p> 如果添加这个类型的 Breakpoint , 好多隐藏很深的 Bug 都会被发现, 类似于 @try {} @catch {} 的 catch 部分</p>
+
+<p> <img src="/assets/exceptions_breakpoint.png" alt="Exceptions Breakpoint" /></p>
+
+<ul>
+<li><p>如果使用GDB和更早版本的XCode的用户可以用下面的方式来检查：</p>
+
+<p>编辑Scheme, 将Diagnostics中的 Enable Zombie Objects 与 Malloc Stack 勾选上</p>
+
+<p>并选中 Enable Zombie Objects 与 Malloc Stack：</p>
+
+<p>当程序出现类似的问题而crash时，我们就可以找到被释放地址的真正原因</p>
+
+<p><img src="/assets/enable_zombie_objects.png" alt="Enable Zombie Objects" /></p></li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+
+
+<hr />
+
+<ul>
+<li><p><strong>通过 Instrument 调试应用</strong></p>
+
+<p>XCode 另外还自带了一个非常强大的APP调试工具： Instrument</p>
+
+<p>关于 Instrument 的介绍，大家可以参考：
+<a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/Introduction/Introduction.html">Instrument Introduction</a></p>
+
+<p><img src="/assets/Instruments_intro_ss.png" alt="Instruments intro" /></p>
+
+<p><em>如果你在Schema Profile 中可以直接设置 Instrument 指定的分析工具，这样运行 Profile 时就可以直接启动它了</em></p>
+
+<p>Instrument 包括的小工具有好几种，我们这里先介绍几个:</p>
+
+<ol>
+<li><p>Leaks</p>
+
+<p> 内存泄露分析工具 Leaks：</p>
+
+<p> <img src="/assets/Instruments_leaks.png" alt="Instruments leaks" /></p>
+
+<p> <a href="http://www.mobileorchard.com/find-iphone-memory-leaks-a-leaks-tool-tutorial/">Leak Tutorial</a></p></li>
+<li><p>Zombiles</p>
+
+<p> 和上面检查Zombile方式类似</p></li>
+</ol>
+</li>
+</ul>
+
+
+<hr />
+
+<ul>
+<li><p>Analyze 分析代码</p>
+
+<p>  试一试通过选择 Menu => Product => Analyze。检测出可能会出现内存泄露的地方，重复引用，命名冲突等地方</p></li>
+</ul>
+
+
+<hr />
+
+<ul>
+<li><p><strong>自定义警告和错误提示</strong></p>
+
+<p>我们还可以在代码中加入自定义的警告和错误提示，对于需要特别给某段代码加标注供日后处理时或出错判断时，可以在代码的上方加上</p>
+
+<p><code>#warning [message]</code>
+在编译的时候会出现警告</p>
+
+<p><code>#error [message]</code>
+在编译的时候会给出现错误提示</p></li>
+</ul>
+
+
+<h2>Crash</h2>
+
+<p>由于使用Objective－c 和 c ，直接执行二进制指令，自己管理内存，会出现访问错误内存的情况出现。这时，系统会直接把你的进程干掉，iOS会给你生成一个Crash Log</p>
+
+<ul>
+<li><strong>关于crash时，如果显示的是堆栈信息，如何正确定位到程序部分</strong></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  *** First throw call stack:
+</span><span class='line'>
+</span><span class='line'>  (0x2f3a022 0x30cbcd6 0x2ee2a48 0x2ee29b9 0x2f392da 0x9cfd3 0x7f460 0x80a6e 0x103ba29 0x2f05855 0x2f05778 ...)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  如何查看这些信息背后的真实情况，在main.m代码中加入以写部分：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  #ifdef DEBUGvoid eHandler(NSException*);
+</span><span class='line'>
+</span><span class='line'>  void eHandler(NSException*exception){    
+</span><span class='line'>    NSLog(@"%@", exception);    
+</span><span class='line'>    NSLog(@"%@",[exception callStackSymbols]);
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  #endif
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  int main(int argc,char*argv[]){
+</span><span class='line'>    #ifdef DEBUG    
+</span><span class='line'>    NSSetUncaughtExceptionHandler(&eHandler);
+</span><span class='line'>    #endif
+</span><span class='line'>    ...rest of your main function here...
+</span><span class='line'>  }</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<ul>
+<li><p><strong>理解与分析 Crash Report</strong></p>
+
+<p>在APP上线后，对 Crash Report 的监控是最为重要的环节了。itunes connect应用管理后台提供了部分的 Crash Reports，你可以在管理后台下载 .crash 文件，然后通过这个文件查找是哪儿引起的crash。</p>
+
+<p>但是这个文件中没有平时调试时候那样可以看到的函数名和函数具体调用行数。因为这里的这些信息都被转换成了16进制的地址，起到了一定的加密作用，别人拿到你的crash日志也不知道哪里崩溃了，需要利用你编译app的时候生成的dSYM文件然后将这些信息反转为可读模式。所以保留好你Archive后的dSYM文件是很有用的！</p>
+
+<p>如果你能找到 dSYM 文件，就可以利用symbolicatecrash工具查找具体的Bug发生地点了。</p>
+
+<p><code>symbolicatecrash [CrashLog file] [dSYM file]</code></p>
+
+<p><em>tips</em></p>
+
+<blockquote><p>查找 symbolicatecrash 文件位置
+find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
+
+<ul>
+<li><p>设定 <code>export DEVELOPER_DIR=/Application/Xcode.app/Contents/Developer/</code></p></li>
+<li><p>查看你的应用 uuid 与 dSYM的 uuid 是否能对应:</p></li>
+</ul>
+</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dwarfdump --uuid yourapp.app/yourapp
+</span><span class='line'>dwarfdump --uuid yourapp.app.dSYM</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>搜索含有正确 uuid 的文件
+<code>mdfind "com_apple_xcode_dsym_uuids == 5255A87A-B23C-3AE8-B367-14B49C21C1D6"</code></li>
+</ul>
+
+
+<h2>分析</h2>
+
+<p>日志主要由几部分组成，其中:</p>
+
+<ul>
+<li><p><strong>Exception Type</strong></p>
+
+<ul>
+<li><p>EXC_BAD_ACCESS (SIGSEGV)</p>
+
+<p>这个类型的Exception的意思是，你没有权限访问你所要访问的内存。一般都是由于访问了已经被release的object导致的，或者把一个object release了两次。甚至当你访问超出数组长度的内容时，也有可能出现这种类型的错误。它的意思应该是段错误。这个SIGSEGV不是objective－c的excption，而是更底层的C部分的信号。</p></li>
+<li><p>EXC_CRASH (SIGKILL)或者(SIGABRT)</p>
+
+<p>这个类型的Exception比较特别，你需要认真查看后面所有Thread的BackTrace才能找到最终原因，因为有时候它所写的Crash Thread并不是真正引起崩溃的原因，在其中你也找不到什么有用的信息。(SIGABRT)一般是由于系统捕获到一个异常，然后把你的应用终结掉了，你可以在下面的栈信息中寻找有abort信息的那一个thread，能找到真正的原因。(SIGKILL)目前还没在自己的App中遇到过。</p></li>
+</ul>
+</li>
+<li><p><strong>Exception codes</strong></p>
+
+<p>In the crash log is a line that starts with the text Exception Codes: followed by one or more hexadecimal values. These are processor-specific codes that may give you more information on the nature of the crash.</p>
+
+<ol>
+<li><p>The exception code <strong>0xbaaaaaad</strong> indicates that the log is a stackshot of the entire system, not a crash report. To take a stackshot, push the home button and any volume button. Often these logs are accidentally created by users, and do not indicate an error.</p></li>
+<li><p>The exception code <strong>0xbad22222</strong> indicates that a VoIP application has been terminated by iOS because it resumed too frequently.</p></li>
+<li><p>The exception code <strong>0x8badf00d</strong> indicates that an application has been terminated by iOS because a watchdog timeout occurred. The application took too long to launch, terminate, or respond to system events. One common cause of this is doing synchronous networking on the main thread. Whatever operation is on Thread 0: needs to be moved to a background thread, or processed differently, so that it does not block the main thread.</p></li>
+<li><p>The exception code <strong>0xc00010ff</strong> indicates the app was killed by the operating system in response to a thermal event. This may be due to an issue with the particular device that this crash occurred on, or the environment it was operated in. For tips on making your app run more efficiently, see iOS Performance and Power Optimization with InstrumentsWWDC session.</p></li>
+<li><p>The exception code <strong>0xdead10cc</strong> indicates that an application has been terminated by iOS because it held on to a system resource (like the address book database) while running in the background.</p></li>
+<li><p>The exception code <strong>0xdeadfa11</strong> indicated that an application has been force quit by the user. Force quits occur when the user first holds down the On/Off button until &#8220;slide to power off&#8221; appears, then holds down the Home button. It&#8217;s reasonable to assume that the user has done this because the application has become unresponsive, but it&#8217;s not guaranteed - force quit will work on any application.</p></li>
+</ol>
+</li>
+<li><p><strong>一个单步分析 Crash Report 的方法</strong></p>
+
+<p>Steps to analyze crash report from apple:</p>
+
+<p>Copy the release .app file which was pushed to the appstore, the .dSYM file that was created at the time of release and the crash report receive from APPLE into a FOLDER.</p>
+
+<p>OPEN terminal application and go to the folder created above (using CD command)</p>
+
+<p>  <code>atos -arch armv7 -o YOURAPP.app/YOURAPP MEMORY_LOCATION_OF_CRASH.</code> The memory location should be the one at which the app crashed as per the report.</p>
+
+<p>Ex: <code>atos -arch armv7 -o 'app name.app'/'app name' 0x0003b508</code></p>
+
+<p>This would show you the exact line, method name which resulted in crash.</p>
+
+<p>Ex: [classname functionName:]; -510</p>
+
+<p>Symbolicating IPA</p>
+
+<p>if we use IPA for symbolicating - just rename the extention .ipa with .zip , extract it then we can get a Payload Folder which contain app. In this case we don&#8217;t need .dSYM file.</p>
+
+<p>或用 dwarfdump 命令也行</p>
+
+<p>  <code>dwarfdump –lookup 0x000036d2 –arch armv7 YOURAPP.app.dSYM</code></p>
+
+<p>  参考文章:</p></li>
+<li><p><a href="https://developer.apple.com/library/ios/technotes/tn2151/_index.html">Understanding and Analyzing iOS Application Crash Reports</a></p></li>
+<li><a href="http://www.whoslab.me/blog/?p=608">理解Crash Log</a></li>
+<li><p><a href="http://stackoverflow.com/questions/1282428/whats-the-difference-between-kern-invalid-address-and-kern-protection-failure">KERN_INVALID_ADDRESS 与 KERN_PROTECTION_FAILURE 的区别</a></p>
+
+<p>  一些第三方分析工具:</p></li>
+<li><p><a href="http://www.umeng.com/">UMeng 日志监控</a></p></li>
+<li><a href="http://www.hopperapp.com/">反汇编工具Hopper分析Crash Log</a></li>
+<li><a href="http://blog.devtang.com/blog/2013/07/24/use-crashlytics/">Crashlytics</a></li>
+</ul>
+
+
+<h2>几种 Debug 输出方法</h2>
+
+<p>在Apple Tech Note TN2239：<a href="http://developer.apple.com/library/ios/#technotes/tn2010/tn2239.html">iOS Debugging Magic</a> 中提到了程序开发中Debug output 方法：</p>
+
+<pre><code>NSLog
+stderr
+system log
+</code></pre>
+
+<p>调试信息的输出主要有方式，一是通过输出到终端输出，二是输出到日志系统。下面讲介绍一下这几种输出调试信息的方式，首先从stderr说起。</p>
+
+<ul>
+<li><p>stderr （引用自TN2239）：</p>
+
+<p>Many programs, and indeed many system frameworks, print debugging messages to stderr. The destination for this output is ultimately controlled by the program: it can redirect stderr to whatever destination it chooses. However, in most cases a program does not redirect stderr, so the output goes to the default destination inherited by the program from its launch environment. This is typically one of the following:</p>
+
+<p>If you launch a GUI application as it would be launched by a normal user, the system redirects any messages printed on stderr to the system log. You    can view these messages using the techniques described earlier.
+If you run a program from within Xcode, you can see its stderr output in Xcode’s debugger Console window (choose the Console menu item from the Run menu to see this window).</p>
+
+<p>Attaching to a running program (using Xcode’s Attach to Process menu, or the attach command in GDB) does not automatically connect the program’s stderr to your GDB window. You can do this from within GDB using the trick described in the “Seeing stdout and stderr After Attaching” section of Technical Note TN2030, ‘GDB for MacsBug Veterans’.</p>
+
+<p>这样一段代码在真机上运行：</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSLog(@"This is message from NSLog");
+</span><span class='line'>fprintf(stderr, "This is message from stderr\n");</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  如果是通过Xcode调试加载运行这个程序，那么</p>
+
+<p>  在xcode的console中打印如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  2011-03-12 18:52:26.948 Test86[7891:307] This is message from NSLog```
+</span><span class='line'>
+</span><span class='line'>  This is message from stderr</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  在iPhone的system log中（通过Organizer的console查看）只打印</p>
+
+<pre><code>Sat Mar 12 18:52:26 unknown Test86[7891] &lt;Warning&gt;: This is message from NSLog
+</code></pre>
+
+<p>  但是如果在iPhone上通过手指触摸启动这个程序，在iPhone的system log中会打印：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  Sat Mar 12 18:53:38 unknown Test86[7900] &lt;Warning&gt;: This is message from NSLog
+</span><span class='line'>  Sat Mar 12 18:53:38 unknown UIKitApplication:com.yourcompany.Test86[0x7d60][7900] &lt;Notice&gt;: This is message from stderr</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  说明确实stderr在user 自己launch的app中被重定向为system log，而且log的等级为Notice；NSLog的等级为Warning。</p>
+
+<ul>
+<li><p>system log</p>
+
+<p>其实system log是unix系统都有采用syslog协议的一个日志系统（RFC详细讲解了这种协议http://tools.ietf.org/html/rfc5424）。每条日志是有等级的，主要分为如下等级：</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Level 0 – “Emergency”
+</span><span class='line'>Level 1 – “Alert”
+</span><span class='line'>Level 2 – “Critical”
+</span><span class='line'>Level 3 – “Error”
+</span><span class='line'>Level 4 – “Warning”
+</span><span class='line'>Level 5 – “Notice”
+</span><span class='line'>Level 6 – “Info”
+</span><span class='line'>Level 7 – “Debug”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  在创建好日志之后，通过调用API发送日志信息给一个叫做syslogd的守护进程，然后syslogd根据自己的配置文件（位于/private/etc/syslog.conf, mac系统的在：/etc/asl.conf )</p>
+
+<p>  在mac os和ios那么怎样调用API将日志发送给系统日志呢？有两种API：</p>
+
+<p><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/syslog.3.html#//apple_ref/doc/man/3/syslog">syslog API（不要和之前syslog协议混淆）</a></p>
+
+<p><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/asl.3.html">ASL: Apple System Log facility, 是苹果自己实现的一种可以同syslogd服务器交互，用来替换syslog API的实现。</a></p>
+
+<p>这里还有一些讲Syslog不错的文章：</p>
+
+<p><a href="http://www.cocoanetics.com/2011/03/accessing-the-ios-system-log/">Accesing the iOS system log</a></p>
+
+<p><a href="http://boredzo.org/blog/archives/2008-01-20/why-asl">Why ASL?</a></p>
+
+<hr />
+
+<h4>远程调试</h4>
+
+<p><a href="http://corner.squareup.com/2012/08/ponydebugger-remote-debugging.html">PonyDebugger: Remote Debugging Tools for Native iOS Apps</a></p>
+
+<h4>使用网络代理调试API Request</h4>
+
+<p>Charles, Mitmproxy(免费)</p>
+
+<h4>查看iOS 设备上的APP数据</h4>
+
+<p><img src="/assets/iOS_device_data.png" alt="iOS Device Data" /></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1447,6 +1905,10 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/10/18/how-to-debug-our-app/">调试我们的iOS APP</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/05/21/wireless-app-distribution/">无线分发应用&#8211;通过Safari安装App</a>
       </li>
     
@@ -1460,10 +1922,6 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
     
       <li class="post">
         <a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a>
       </li>
     
   </ul>
