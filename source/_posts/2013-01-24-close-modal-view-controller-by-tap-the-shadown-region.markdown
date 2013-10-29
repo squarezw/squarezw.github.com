@@ -29,6 +29,8 @@ argc 与 argv 是标准的c main 函数参数。 第三个参数是接收事件�
 
 ## 实现
 
+<!-- more -->
+
 **测试环境：iOS5, iPad**
 
 改变main的第三个参数对象为 我们自己定义的一个 MyAppplication 类。

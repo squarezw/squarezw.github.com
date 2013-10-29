@@ -33,6 +33,8 @@ pod install
 
 ## 使用
 
+<!-- more -->
+
 * ``` #import "LoggerClient.h" ```
 * 设置客户端网络监控的配置
 ``` objc

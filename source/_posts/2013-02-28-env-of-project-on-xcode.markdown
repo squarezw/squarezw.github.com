@@ -25,6 +25,8 @@ categories:
 
 在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.
 
+<!-- more -->
+
 ![settings prefix header](/assets/settingsPrefixHeader.png)
 
 比如: Test/Config/Test-Prefix-${CONFIGURATION}.pch

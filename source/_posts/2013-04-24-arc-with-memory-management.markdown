@@ -18,6 +18,8 @@ ARC 是 iOS 5 后推出的一项为Objective - C程序在编译时提供自动�
 
 下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。
 
+<!-- more -->
+
 ## 需要的基本环境:
 ARC is supported in Xcode 4.2 for OS X v10.6 and v10.7 (64-bit applications) and for iOS 4 and iOS 5. Weak references are not supported in OS X v10.6 and iOS 4.
 
