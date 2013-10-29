@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2013-10-29T12:37:59+08:00</updated>
+  <updated>2013-10-29T12:38:27+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -23,9 +23,6 @@
 <p><strong>注：以下部分英文原文因本人翻译水平有限，不能给出准确的中文释义，所以将引用的原文进行了保留。</strong></p>
 
 <p>关于如何来调试我们的APP，其实是可以从不同的维度来划分，比如应用调试，测试，错误分析等。我们先从最基本的调试工具入手一步步介绍。</p>
-
-<!-- more -->
-
 
 <h2>XCode Debug Tools</h2>
 
@@ -642,6 +639,9 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <p>很多人担心内存管理不受自己控制，其实这是对于ARC机制了解不足从而不自信，所导致的对新事物的恐惧。</p>
 
 <p>下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。</p>
+
+<!-- more -->
+
 
 <h2>需要的基本环境:</h2>
 
