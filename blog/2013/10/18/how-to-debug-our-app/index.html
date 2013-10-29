@@ -97,6 +97,8 @@
 
 <time datetime="2013-10-18T16:58:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2013</time>
         
+         | <a href="#disqus_thread">Comments</a>
+        
       </p>
     
   </header>
@@ -107,6 +109,9 @@
 <p><strong>注：以下部分英文原文因本人翻译水平有限，不能给出准确的中文释义，所以将引用的原文进行了保留。</strong></p>
 
 <p>关于如何来调试我们的APP，其实是可以从不同的维度来划分，比如应用调试，测试，错误分析等。我们先从最基本的调试工具入手一步步介绍。</p>
+
+<!-- more -->
+
 
 <h2>XCode Debug Tools</h2>
 
@@ -503,25 +508,27 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 
 <p>  在mac os和ios那么怎样调用API将日志发送给系统日志呢？有两种API：</p>
 
-<p><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/syslog.3.html#//apple_ref/doc/man/3/syslog">syslog API（不要和之前syslog协议混淆）</a></p>
+<ul>
+<li><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/syslog.3.html#//apple_ref/doc/man/3/syslog">syslog API</a> - <em>不要和之前syslog协议混淆</em></li>
+<li><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/asl.3.html">ASL: Apple System Log facility</a> - <em>是苹果自己实现的一种可以同syslogd服务器交互，用来替换syslog API的实现</em></li>
+</ul>
 
-<p><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/asl.3.html">ASL: Apple System Log facility, 是苹果自己实现的一种可以同syslogd服务器交互，用来替换syslog API的实现。</a></p>
 
 <p>这里还有一些讲Syslog不错的文章：</p>
 
-<p><a href="http://www.cocoanetics.com/2011/03/accessing-the-ios-system-log/">Accesing the iOS system log</a></p>
+<ul>
+<li><a href="http://www.cocoanetics.com/2011/03/accessing-the-ios-system-log/">Accesing the iOS system log</a></li>
+<li><a href="http://boredzo.org/blog/archives/2008-01-20/why-asl">Why ASL?</a></li>
+</ul>
 
-<p><a href="http://boredzo.org/blog/archives/2008-01-20/why-asl">Why ASL?</a></p>
 
 <hr />
 
-<h4>远程调试</h4>
+<ul>
+<li><a href="http://corner.squareup.com/2012/08/ponydebugger-remote-debugging.html">PonyDebugger: Remote Debugging Tools for Native iOS Apps</a> - <em>远程调试</em></li>
+<li>Charles, Mitmproxy(免费) - <em>使用网络代理调试API Request</em></li>
+</ul>
 
-<p><a href="http://corner.squareup.com/2012/08/ponydebugger-remote-debugging.html">PonyDebugger: Remote Debugging Tools for Native iOS Apps</a></p>
-
-<h4>使用网络代理调试API Request</h4>
-
-<p>Charles, Mitmproxy(免费)</p>
 
 <h4>查看iOS 设备上的APP数据</h4>
 
@@ -569,6 +576,12 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
     </p>
   </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -632,6 +645,22 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 
 </footer>
   
+
+<script type="text/javascript">
+      var disqus_shortname = 'doruby';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://doruby.com/blog/2013/10/18/how-to-debug-our-app/';
+        var disqus_url = 'http://doruby.com/blog/2013/10/18/how-to-debug-our-app/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 

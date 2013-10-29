@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2013-10-29T12:12:58+08:00</updated>
+  <updated>2013-10-29T12:34:02+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -23,6 +23,9 @@
 <p><strong>注：以下部分英文原文因本人翻译水平有限，不能给出准确的中文释义，所以将引用的原文进行了保留。</strong></p>
 
 <p>关于如何来调试我们的APP，其实是可以从不同的维度来划分，比如应用调试，测试，错误分析等。我们先从最基本的调试工具入手一步步介绍。</p>
+
+<!-- more -->
+
 
 <h2>XCode Debug Tools</h2>
 
@@ -419,25 +422,27 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 
 <p>  在mac os和ios那么怎样调用API将日志发送给系统日志呢？有两种API：</p>
 
-<p><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/syslog.3.html#//apple_ref/doc/man/3/syslog">syslog API（不要和之前syslog协议混淆）</a></p>
+<ul>
+<li><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/syslog.3.html#//apple_ref/doc/man/3/syslog">syslog API</a> - <em>不要和之前syslog协议混淆</em></li>
+<li><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/asl.3.html">ASL: Apple System Log facility</a> - <em>是苹果自己实现的一种可以同syslogd服务器交互，用来替换syslog API的实现</em></li>
+</ul>
 
-<p><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/asl.3.html">ASL: Apple System Log facility, 是苹果自己实现的一种可以同syslogd服务器交互，用来替换syslog API的实现。</a></p>
 
 <p>这里还有一些讲Syslog不错的文章：</p>
 
-<p><a href="http://www.cocoanetics.com/2011/03/accessing-the-ios-system-log/">Accesing the iOS system log</a></p>
+<ul>
+<li><a href="http://www.cocoanetics.com/2011/03/accessing-the-ios-system-log/">Accesing the iOS system log</a></li>
+<li><a href="http://boredzo.org/blog/archives/2008-01-20/why-asl">Why ASL?</a></li>
+</ul>
 
-<p><a href="http://boredzo.org/blog/archives/2008-01-20/why-asl">Why ASL?</a></p>
 
 <hr />
 
-<h4>远程调试</h4>
+<ul>
+<li><a href="http://corner.squareup.com/2012/08/ponydebugger-remote-debugging.html">PonyDebugger: Remote Debugging Tools for Native iOS Apps</a> - <em>远程调试</em></li>
+<li>Charles, Mitmproxy(免费) - <em>使用网络代理调试API Request</em></li>
+</ul>
 
-<p><a href="http://corner.squareup.com/2012/08/ponydebugger-remote-debugging.html">PonyDebugger: Remote Debugging Tools for Native iOS Apps</a></p>
-
-<h4>使用网络代理调试API Request</h4>
-
-<p>Charles, Mitmproxy(免费)</p>
 
 <h4>查看iOS 设备上的APP数据</h4>
 
@@ -468,6 +473,11 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;itms-services://?action=download-manifest&amp;url=http://example.com/manifest.plist&quot;</span><span class="o">&gt;</span><span class="n">Install</span> <span class="n">App</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- more -->
 
 
 <h2>plist 文件模板:</h2>
@@ -632,6 +642,9 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <p>很多人担心内存管理不受自己控制，其实这是对于ARC机制了解不足从而不自信，所导致的对新事物的恐惧。</p>
 
 <p>下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。</p>
+
+<!-- more -->
+
 
 <h2>需要的基本环境:</h2>
 
@@ -1254,6 +1267,9 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 <p>无伦从哪个角度来划分模块其实都有各自的优缺点，我们需求上来设计实际的项目，即使他们功能独立，减低耦合，又要使得信息的流转变得简单。 理论讲的差不多了，我们这里除开项目管理的基本要求，比如开发文档，注释规范，各种图等不提，拆分的方式根据你自己的业务需求自行选择拆分方式，这里只讲讲开发中如何协调和整合它们。
 好吧。下面上干货了。</p>
 
+<!-- more -->
+
+
 <h2>iOS 团队开发实践</h2>
 
 <p>我们先把现在遇到的问题列出来，然后一一解决。</p>
@@ -1334,6 +1350,9 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 <p>现在想到的更好的方法是直接修改Prefix Header的引用路径</p>
 
 <p>在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.</p>
+
+<!-- more -->
+
 
 <p><img src="http://doruby.com/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
 
@@ -1443,6 +1462,9 @@ Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设
 <p>任何时刻你点击屏幕，principalClassName都会监听, 并执行sendEvent方法, 所以我们只要拦截这个方法，然后做我们想做的事情就可以了。</p>
 
 <h2>实现</h2>
+
+<!-- more -->
+
 
 <p><strong>测试环境：iOS5, iPad</strong></p>
 
@@ -1566,6 +1588,9 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
 <p><a href="http://doruby.com/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
 
 <h2>使用</h2>
+
+<!-- more -->
+
 
 <ul>
 <li><code>#import "LoggerClient.h"</code></li>
