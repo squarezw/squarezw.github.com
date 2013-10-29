@@ -1,0 +1,1655 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[square's blog]]></title>
+  <link href="http://doruby.com/atom.xml" rel="self"/>
+  <link href="http://doruby.com/"/>
+  <updated>2013-10-29T13:27:03+08:00</updated>
+  <id>http://doruby.com/</id>
+  <author>
+    <name><![CDATA[square]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[调试我们的iOS APP]]></title>
+    <link href="http://doruby.com/blog/2013/10/18/how-to-debug-our-app/"/>
+    <updated>2013-10-18T16:58:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/10/18/how-to-debug-our-app</id>
+    <content type="html"><![CDATA[<p>很早就想写一篇关于调试和测试的文章了。一直没写的原因一方面是工作太忙，一方面是现在新的调试工具和调试方法层出不穷，不知道什么时候现在用的方法就会过时，所以一直犹豫是不是等到有一个系统的方案出来在总结一下，不过我觉得还是现在先把能想到和用到写下来，让大家一起探讨。</p>
+
+<p><strong>注：以下部分英文原文因本人翻译水平有限，不能给出准确的中文释义，所以将引用的原文进行了保留。</strong></p>
+
+<p>关于如何来调试我们的APP，其实是可以从不同的维度来划分，比如应用调试，测试，错误分析等。我们先从最基本的调试工具入手一步步介绍。</p>
+
+<h2>XCode Debug Tools</h2>
+
+<ul>
+<li><p><strong>Debugger</strong></p>
+
+<p>首先 Xcode 默认设置了你所用的 Debugger</p>
+
+<p><img src="http://doruby.com/assets/setting_debugger.png" alt="Debugger Setting" /></p>
+
+<p>通常我们这里用默认的<a href="http://lldb.llvm.org/">LLDB</a>,   XCode5之后默认就是用 LLDB了，XCode5以前还有 GDB。</p>
+
+<p>使用LLDB之后，我们通常是在代码执行的地方，打上断点，如：</p>
+
+<p><img src="http://doruby.com/assets/set_breakpoint.png" alt="Set BreakPoint" /></p>
+
+<p>这样程序运行遇到断点后会停下等待，这时我们可以在控制台，使用一些调试命令输出我们所需要的对象信息:</p>
+
+<p><img src="http://doruby.com/assets/control_po.png" alt="Control NSLog" /></p>
+
+<p>  还有很多命令:</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">view</span> <span class="n">recursiveDescription</span><span class="p">]</span>  <span class="err">#</span> <span class="err">递归打印</span><span class="n">view</span>
+</span><span class='line'><span class="n">image</span> <span class="n">lookup</span> <span class="o">--</span><span class="n">address</span> <span class="mh">0xffffff</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  更多调试命令可以参考上面的 LLDB 介绍，或用 help 命令显示帮助。</p>
+
+<blockquote><p>需要注意的是当Optimization Level不为None时，断点的定位会有差异，所以建议在Target 为 Debug 时调试更为准确，如果一定要在Release模式下调试，可以手动设置为Optimization Level 为 None</p></blockquote>
+
+<p>  如果想看全部的信息，可以点这里选择:</p>
+
+<p>  <img src="http://doruby.com/assets/all_variables.png" alt="ALL Variables" /></p>
+
+<hr />
+
+<ul>
+<li><p><strong>Global Symbolic BreakPoints</strong></p>
+
+<p>除了上面的指定断点设置，还可以设置Global Point, 作用域在当前用户的所有project，添加的Breakpoint 的方式有好几种，而且还可以以不同的方式呈现，比如日志输入，语音提醒等，可以在Action参数中设置。</p>
+
+<p>BreakPoint 其中有几种设定类型，其中有：</p>
+
+<ol>
+<li><p>Symbolic Breakpoint</p>
+
+<p> 我们可以添加指定的方法为断点。比如添加一个 viewDidLoad Symbol，会在运行到所有的viewDidLoad方法时停下. 如果你要添加某个特定类的实例方法，可以用 -[类名 实例方法名]。类方法是 +[类名 方法名]</p>
+
+<p> <img src="http://doruby.com/assets/symbolic_breakpoint.png" alt="Symbolic Breakpoint" /></p>
+
+<ul>
+<li>如果你不知道这个方法格式应该如何书写，可以在你想要打断点的方法里先做断点，然后查看左边的Show the Debugger Navigator, 里的 Thread 指向的方法名:</li>
+</ul>
+
+
+<p> <img src="http://doruby.com/assets/show_the_debugger_navigator.png" alt="Show The Debugger Navigator" /></p>
+
+<p> 看到 0 后面的方法调用了吗？</p></li>
+<li><p>Exception Breakpoint</p>
+
+<p> 另一个非常有用的断点设定,</p>
+
+<p> 在开发中除了用断点调试我们的应用分析问题外，还有一种情况是，我们向被释放的对象发送了消息，导致的crash (EXC_BAD_ACCESS)。</p>
+
+<p> 关于Zombie:</p>
+
+<blockquote><p>在 Cocoa 中，zombies 是一种即使生命终止了也会到惹麻烦的对象。我们可以做的是启动一个编译设置，使对象的引用计数降为0的时候不被释放，而是将它们转化为NSZombie对象。这个类的目的是记录任何对它的实例的调用，因为这意味着代码企图用一个已经消亡的对象调用方法。</p></blockquote>
+
+<p> 通常我们的做法是通过设定 Exception Breakpoint 来统一排错，其中也包括了些类情况, 所以这个断点设定的方法来检查类似情况变得非常实用。</p>
+
+<p> <img src="http://doruby.com/assets/exception_breakpoint_menu.png" alt="Exception Breakpoint Menu" /></p>
+
+<p> 如果添加这个类型的 Breakpoint , 好多隐藏很深的 Bug 都会被发现, 类似于 @try {} @catch {} 的 catch 部分</p>
+
+<p> <img src="http://doruby.com/assets/exceptions_breakpoint.png" alt="Exceptions Breakpoint" /></p>
+
+<ul>
+<li><p>如果使用GDB和更早版本的XCode的用户可以用下面的方式来检查：</p>
+
+<p>编辑Scheme, 将Diagnostics中的 Enable Zombie Objects 与 Malloc Stack 勾选上</p>
+
+<p>并选中 Enable Zombie Objects 与 Malloc Stack：</p>
+
+<p>当程序出现类似的问题而crash时，我们就可以找到被释放地址的真正原因</p>
+
+<p><img src="http://doruby.com/assets/enable_zombie_objects.png" alt="Enable Zombie Objects" /></p></li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+
+
+<hr />
+
+<ul>
+<li><p><strong>通过 Instrument 调试应用</strong></p>
+
+<p>XCode 另外还自带了一个非常强大的APP调试工具： Instrument</p>
+
+<p>关于 Instrument 的介绍，大家可以参考：
+<a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/Introduction/Introduction.html">Instrument Introduction</a></p>
+
+<p><img src="http://doruby.com/assets/Instruments_intro_ss.png" alt="Instruments intro" /></p>
+
+<p><em>如果你在Schema Profile 中可以直接设置 Instrument 指定的分析工具，这样运行 Profile 时就可以直接启动它了</em></p>
+
+<p>Instrument 包括的小工具有好几种，我们这里先介绍几个:</p>
+
+<ol>
+<li><p>Leaks</p>
+
+<p> 内存泄露分析工具 Leaks：</p>
+
+<p> <img src="http://doruby.com/assets/Instruments_leaks.png" alt="Instruments leaks" /></p>
+
+<p> <a href="http://www.mobileorchard.com/find-iphone-memory-leaks-a-leaks-tool-tutorial/">Leak Tutorial</a></p></li>
+<li><p>Zombiles</p>
+
+<p> 和上面检查Zombile方式类似</p></li>
+</ol>
+</li>
+</ul>
+
+
+<hr />
+
+<ul>
+<li><p>Analyze 分析代码</p>
+
+<p>  试一试通过选择 Menu => Product => Analyze。检测出可能会出现内存泄露的地方，重复引用，命名冲突等地方</p></li>
+</ul>
+
+
+<hr />
+
+<ul>
+<li><p><strong>自定义警告和错误提示</strong></p>
+
+<p>我们还可以在代码中加入自定义的警告和错误提示，对于需要特别给某段代码加标注供日后处理时或出错判断时，可以在代码的上方加上</p>
+
+<p><code>#warning [message]</code>
+在编译的时候会出现警告</p>
+
+<p><code>#error [message]</code>
+在编译的时候会给出现错误提示</p></li>
+</ul>
+
+
+<h2>Crash</h2>
+
+<p>由于使用Objective－c 和 c ，直接执行二进制指令，自己管理内存，会出现访问错误内存的情况出现。这时，系统会直接把你的进程干掉，iOS会给你生成一个Crash Log</p>
+
+<ul>
+<li><strong>关于crash时，如果显示的是堆栈信息，如何正确定位到程序部分</strong></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="o">***</span> <span class="n">First</span> <span class="n">throw</span> <span class="n">call</span> <span class="nl">stack:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">(</span><span class="mh">0x2f3a022</span> <span class="mh">0x30cbcd6</span> <span class="mh">0x2ee2a48</span> <span class="mh">0x2ee29b9</span> <span class="mh">0x2f392da</span> <span class="mh">0x9cfd3</span> <span class="mh">0x7f460</span> <span class="mh">0x80a6e</span> <span class="mh">0x103ba29</span> <span class="mh">0x2f05855</span> <span class="mh">0x2f05778</span> <span class="p">...)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  如何查看这些信息背后的真实情况，在main.m代码中加入以写部分：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">  #ifdef DEBUGvoid eHandler(NSException*);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kt">void</span> <span class="n">eHandler</span><span class="p">(</span><span class="n">NSException</span><span class="o">*</span><span class="n">exception</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,</span> <span class="n">exception</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,[</span><span class="n">exception</span> <span class="n">callStackSymbols</span><span class="p">]);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">  #endif</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span><span class="o">*</span><span class="n">argv</span><span class="p">[]){</span>
+</span><span class='line'><span class="cp">    #ifdef DEBUG    </span>
+</span><span class='line'>    <span class="n">NSSetUncaughtExceptionHandler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">eHandler</span><span class="p">);</span>
+</span><span class='line'><span class="cp">    #endif</span>
+</span><span class='line'>    <span class="p">...</span><span class="n">rest</span> <span class="n">of</span> <span class="n">your</span> <span class="n">main</span> <span class="n">function</span> <span class="n">here</span><span class="p">...</span>
+</span><span class='line'>  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<ul>
+<li><p><strong>理解与分析 Crash Report</strong></p>
+
+<p>在APP上线后，对 Crash Report 的监控是最为重要的环节了。itunes connect应用管理后台提供了部分的 Crash Reports，你可以在管理后台下载 .crash 文件，然后通过这个文件查找是哪儿引起的crash。</p>
+
+<p>但是这个文件中没有平时调试时候那样可以看到的函数名和函数具体调用行数。因为这里的这些信息都被转换成了16进制的地址，起到了一定的加密作用，别人拿到你的crash日志也不知道哪里崩溃了，需要利用你编译app的时候生成的dSYM文件然后将这些信息反转为可读模式。所以保留好你Archive后的dSYM文件是很有用的！</p>
+
+<p>如果你能找到 dSYM 文件，就可以利用symbolicatecrash工具查找具体的Bug发生地点了。</p>
+
+<p><code>symbolicatecrash [CrashLog file] [dSYM file]</code></p>
+
+<p><em>tips</em></p>
+
+<blockquote><p>查找 symbolicatecrash 文件位置
+find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
+
+<ul>
+<li><p>设定 <code>export DEVELOPER_DIR=/Application/Xcode.app/Contents/Developer/</code></p></li>
+<li><p>查看你的应用 uuid 与 dSYM的 uuid 是否能对应:</p></li>
+</ul>
+</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">dwarfdump</span> <span class="o">--</span><span class="n">uuid</span> <span class="n">yourapp</span><span class="p">.</span><span class="n">app</span><span class="o">/</span><span class="n">yourapp</span>
+</span><span class='line'><span class="n">dwarfdump</span> <span class="o">--</span><span class="n">uuid</span> <span class="n">yourapp</span><span class="p">.</span><span class="n">app</span><span class="p">.</span><span class="n">dSYM</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>搜索含有正确 uuid 的文件
+<code>mdfind "com_apple_xcode_dsym_uuids == 5255A87A-B23C-3AE8-B367-14B49C21C1D6"</code></li>
+</ul>
+
+
+<h2>分析</h2>
+
+<p>日志主要由几部分组成，其中:</p>
+
+<ul>
+<li><p><strong>Exception Type</strong></p>
+
+<ul>
+<li><p>EXC_BAD_ACCESS (SIGSEGV)</p>
+
+<p>这个类型的Exception的意思是，你没有权限访问你所要访问的内存。一般都是由于访问了已经被release的object导致的，或者把一个object release了两次。甚至当你访问超出数组长度的内容时，也有可能出现这种类型的错误。它的意思应该是段错误。这个SIGSEGV不是objective－c的excption，而是更底层的C部分的信号。</p></li>
+<li><p>EXC_CRASH (SIGKILL)或者(SIGABRT)</p>
+
+<p>这个类型的Exception比较特别，你需要认真查看后面所有Thread的BackTrace才能找到最终原因，因为有时候它所写的Crash Thread并不是真正引起崩溃的原因，在其中你也找不到什么有用的信息。(SIGABRT)一般是由于系统捕获到一个异常，然后把你的应用终结掉了，你可以在下面的栈信息中寻找有abort信息的那一个thread，能找到真正的原因。(SIGKILL)目前还没在自己的App中遇到过。</p></li>
+</ul>
+</li>
+<li><p><strong>Exception codes</strong></p>
+
+<p>In the crash log is a line that starts with the text Exception Codes: followed by one or more hexadecimal values. These are processor-specific codes that may give you more information on the nature of the crash.</p>
+
+<ol>
+<li><p>The exception code <strong>0xbaaaaaad</strong> indicates that the log is a stackshot of the entire system, not a crash report. To take a stackshot, push the home button and any volume button. Often these logs are accidentally created by users, and do not indicate an error.</p></li>
+<li><p>The exception code <strong>0xbad22222</strong> indicates that a VoIP application has been terminated by iOS because it resumed too frequently.</p></li>
+<li><p>The exception code <strong>0x8badf00d</strong> indicates that an application has been terminated by iOS because a watchdog timeout occurred. The application took too long to launch, terminate, or respond to system events. One common cause of this is doing synchronous networking on the main thread. Whatever operation is on Thread 0: needs to be moved to a background thread, or processed differently, so that it does not block the main thread.</p></li>
+<li><p>The exception code <strong>0xc00010ff</strong> indicates the app was killed by the operating system in response to a thermal event. This may be due to an issue with the particular device that this crash occurred on, or the environment it was operated in. For tips on making your app run more efficiently, see iOS Performance and Power Optimization with InstrumentsWWDC session.</p></li>
+<li><p>The exception code <strong>0xdead10cc</strong> indicates that an application has been terminated by iOS because it held on to a system resource (like the address book database) while running in the background.</p></li>
+<li><p>The exception code <strong>0xdeadfa11</strong> indicated that an application has been force quit by the user. Force quits occur when the user first holds down the On/Off button until &#8220;slide to power off&#8221; appears, then holds down the Home button. It&#8217;s reasonable to assume that the user has done this because the application has become unresponsive, but it&#8217;s not guaranteed - force quit will work on any application.</p></li>
+</ol>
+</li>
+<li><p><strong>一个单步分析 Crash Report 的方法</strong></p>
+
+<p>Steps to analyze crash report from apple:</p>
+
+<p>Copy the release .app file which was pushed to the appstore, the .dSYM file that was created at the time of release and the crash report receive from APPLE into a FOLDER.</p>
+
+<p>OPEN terminal application and go to the folder created above (using CD command)</p>
+
+<p>  <code>atos -arch armv7 -o YOURAPP.app/YOURAPP MEMORY_LOCATION_OF_CRASH.</code> The memory location should be the one at which the app crashed as per the report.</p>
+
+<p>Ex: <code>atos -arch armv7 -o 'app name.app'/'app name' 0x0003b508</code></p>
+
+<p>This would show you the exact line, method name which resulted in crash.</p>
+
+<p>Ex: [classname functionName:]; -510</p>
+
+<p>Symbolicating IPA</p>
+
+<p>if we use IPA for symbolicating - just rename the extention .ipa with .zip , extract it then we can get a Payload Folder which contain app. In this case we don&#8217;t need .dSYM file.</p>
+
+<p>或用 dwarfdump 命令也行</p>
+
+<p>  <code>dwarfdump –lookup 0x000036d2 –arch armv7 YOURAPP.app.dSYM</code></p>
+
+<p>  参考文章:</p></li>
+<li><p><a href="https://developer.apple.com/library/ios/technotes/tn2151/_index.html">Understanding and Analyzing iOS Application Crash Reports</a></p></li>
+<li><a href="http://www.whoslab.me/blog/?p=608">理解Crash Log</a></li>
+<li><p><a href="http://stackoverflow.com/questions/1282428/whats-the-difference-between-kern-invalid-address-and-kern-protection-failure">KERN_INVALID_ADDRESS 与 KERN_PROTECTION_FAILURE 的区别</a></p>
+
+<p>  一些第三方分析工具:</p></li>
+<li><p><a href="http://www.umeng.com/">UMeng 日志监控</a></p></li>
+<li><a href="http://www.hopperapp.com/">反汇编工具Hopper分析Crash Log</a></li>
+<li><a href="http://blog.devtang.com/blog/2013/07/24/use-crashlytics/">Crashlytics</a></li>
+</ul>
+
+
+<h2>几种 Debug 输出方法</h2>
+
+<p>在Apple Tech Note TN2239：<a href="http://developer.apple.com/library/ios/#technotes/tn2010/tn2239.html">iOS Debugging Magic</a> 中提到了程序开发中Debug output 方法：</p>
+
+<pre><code>NSLog
+stderr
+system log
+</code></pre>
+
+<p>调试信息的输出主要有方式，一是通过输出到终端输出，二是输出到日志系统。下面讲介绍一下这几种输出调试信息的方式，首先从stderr说起。</p>
+
+<ul>
+<li><p>stderr （引用自TN2239）：</p>
+
+<p>Many programs, and indeed many system frameworks, print debugging messages to stderr. The destination for this output is ultimately controlled by the program: it can redirect stderr to whatever destination it chooses. However, in most cases a program does not redirect stderr, so the output goes to the default destination inherited by the program from its launch environment. This is typically one of the following:</p>
+
+<p>If you launch a GUI application as it would be launched by a normal user, the system redirects any messages printed on stderr to the system log. You    can view these messages using the techniques described earlier.
+If you run a program from within Xcode, you can see its stderr output in Xcode’s debugger Console window (choose the Console menu item from the Run menu to see this window).</p>
+
+<p>Attaching to a running program (using Xcode’s Attach to Process menu, or the attach command in GDB) does not automatically connect the program’s stderr to your GDB window. You can do this from within GDB using the trick described in the “Seeing stdout and stderr After Attaching” section of Technical Note TN2030, ‘GDB for MacsBug Veterans’.</p>
+
+<p>这样一段代码在真机上运行：</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;This is message from NSLog&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;This is message from stderr</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  如果是通过Xcode调试加载运行这个程序，那么</p>
+
+<p>  在xcode的console中打印如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="mi">2011</span><span class="o">-</span><span class="mo">03</span><span class="o">-</span><span class="mi">12</span> <span class="mi">18</span><span class="o">:</span><span class="mi">52</span><span class="o">:</span><span class="mf">26.948</span> <span class="n">Test86</span><span class="p">[</span><span class="mi">7891</span><span class="o">:</span><span class="mi">307</span><span class="p">]</span> <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">NSLog</span><span class="err">```</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">stderr</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  在iPhone的system log中（通过Organizer的console查看）只打印</p>
+
+<pre><code>Sat Mar 12 18:52:26 unknown Test86[7891] &lt;Warning&gt;: This is message from NSLog
+</code></pre>
+
+<p>  但是如果在iPhone上通过手指触摸启动这个程序，在iPhone的system log中会打印：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="n">Sat</span> <span class="n">Mar</span> <span class="mi">12</span> <span class="mi">18</span><span class="o">:</span><span class="mi">53</span><span class="o">:</span><span class="mi">38</span> <span class="n">unknown</span> <span class="n">Test86</span><span class="p">[</span><span class="mi">7900</span><span class="p">]</span> <span class="o">&lt;</span><span class="n">Warning</span><span class="o">&gt;:</span> <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">NSLog</span>
+</span><span class='line'>  <span class="n">Sat</span> <span class="n">Mar</span> <span class="mi">12</span> <span class="mi">18</span><span class="o">:</span><span class="mi">53</span><span class="o">:</span><span class="mi">38</span> <span class="n">unknown</span> <span class="nl">UIKitApplication:</span><span class="n">com</span><span class="p">.</span><span class="n">yourcompany</span><span class="p">.</span><span class="n">Test86</span><span class="p">[</span><span class="mh">0x7d60</span><span class="p">][</span><span class="mi">7900</span><span class="p">]</span> <span class="o">&lt;</span><span class="n">Notice</span><span class="o">&gt;:</span> <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">stderr</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  说明确实stderr在user 自己launch的app中被重定向为system log，而且log的等级为Notice；NSLog的等级为Warning。</p>
+
+<ul>
+<li><p>system log</p>
+
+<p>其实system log是unix系统都有采用syslog协议的一个日志系统（RFC详细讲解了这种协议http://tools.ietf.org/html/rfc5424）。每条日志是有等级的，主要分为如下等级：</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">Level</span> <span class="mi">0</span> <span class="err">–</span> <span class="err">“</span><span class="n">Emergency</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">1</span> <span class="err">–</span> <span class="err">“</span><span class="n">Alert</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">2</span> <span class="err">–</span> <span class="err">“</span><span class="n">Critical</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">3</span> <span class="err">–</span> <span class="err">“</span><span class="n">Error</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">4</span> <span class="err">–</span> <span class="err">“</span><span class="n">Warning</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">5</span> <span class="err">–</span> <span class="err">“</span><span class="n">Notice</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">6</span> <span class="err">–</span> <span class="err">“</span><span class="n">Info</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">7</span> <span class="err">–</span> <span class="err">“</span><span class="n">Debug</span><span class="err">”</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  在创建好日志之后，通过调用API发送日志信息给一个叫做syslogd的守护进程，然后syslogd根据自己的配置文件（位于/private/etc/syslog.conf, mac系统的在：/etc/asl.conf )</p>
+
+<p>  在mac os和ios那么怎样调用API将日志发送给系统日志呢？有两种API：</p>
+
+<ul>
+<li><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/syslog.3.html#//apple_ref/doc/man/3/syslog">syslog API</a> - <em>不要和之前syslog协议混淆</em></li>
+<li><a href="https://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/asl.3.html">ASL: Apple System Log facility</a> - <em>是苹果自己实现的一种可以同syslogd服务器交互，用来替换syslog API的实现</em></li>
+</ul>
+
+
+<p>这里还有一些讲Syslog不错的文章：</p>
+
+<ul>
+<li><a href="http://www.cocoanetics.com/2011/03/accessing-the-ios-system-log/">Accesing the iOS system log</a></li>
+<li><a href="http://boredzo.org/blog/archives/2008-01-20/why-asl">Why ASL?</a></li>
+</ul>
+
+
+<hr />
+
+<ul>
+<li><a href="http://corner.squareup.com/2012/08/ponydebugger-remote-debugging.html">PonyDebugger: Remote Debugging Tools for Native iOS Apps</a> - <em>远程调试</em></li>
+<li>Charles, Mitmproxy(免费) - <em>使用网络代理调试API Request</em></li>
+</ul>
+
+
+<h4>查看iOS 设备上的APP数据</h4>
+
+<p><img src="http://doruby.com/assets/iOS_device_data.png" alt="iOS Device Data" /></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[无线分发应用--通过Safari安装App]]></title>
+    <link href="http://doruby.com/blog/2013/05/21/wireless-app-distribution/"/>
+    <updated>2013-05-21T16:03:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/05/21/wireless-app-distribution</id>
+    <content type="html"><![CDATA[<p>iOS 支持以无线方式安装企业级应用程序，这可让您在不使用 iTunes 的情况下将内部软件分发给用户。</p>
+
+<h2>简单几步：</h2>
+
+<ol>
+<li><p>用户需要将设备的<a href="http://www.innerfence.com/howto/find-iphone-unique-device-identifier-udid">UDID</a>加到 Apple Developer Center 中心的设备里，并更新 .mobileprovision文件</p></li>
+<li><p>Scheme 里将 Archive 的 Build Configuration 换成 Debug 模式</p></li>
+<li><p>Archive 后从 Organizer 找到app文件，生成 ipa 文件</p></li>
+<li><p>生成 plist 文件，将它与 ipa 文件放到服务器上，并可通过网址访问并可下载</p></li>
+<li><p>做一个网页供大家访问后点键接跳转下载此plist, 如果生成将网址生成一个二维码，就更方便了。</p>
+
+<p>比如:</p></li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;itms-services://?action=download-manifest&amp;url=http://example.com/manifest.plist&quot;</span><span class="o">&gt;</span><span class="n">Install</span> <span class="n">App</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- more -->
+
+
+<h2>plist 文件模板:</h2>
+
+<ul>
+<li>注: {}里的内容是要替换的</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="o">&lt;?</span><span class="n">xml</span> <span class="n">version</span><span class="o">=</span><span class="s">&quot;1.0&quot;</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;UTF-8&quot;</span><span class="o">?&gt;</span>
+</span><span class='line'><span class="o">&lt;!</span><span class="n">DOCTYPE</span> <span class="n">plist</span> <span class="n">PUBLIC</span> <span class="s">&quot;-//Apple//DTD PLIST 1.0//EN&quot;</span> <span class="s">&quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">plist</span> <span class="n">version</span><span class="o">=</span><span class="s">&quot;1.0&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">items</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">assets</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">kind</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="n">software</span><span class="o">-</span><span class="n">package</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">url</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>                  <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">{</span><span class="err">你的域名</span><span class="nl">http:</span><span class="c1">//doruby.com/xxx.ipa}&lt;/string&gt;</span>
+</span><span class='line'>              <span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;/</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">metadata</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">bundle</span><span class="o">-</span><span class="n">identifier</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">{</span><span class="err">你的</span><span class="n">bundle</span> <span class="n">identifier</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">bundle</span><span class="o">-</span><span class="n">version</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="mf">1.0</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">kind</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="n">software</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">key</span><span class="o">&gt;</span><span class="n">title</span><span class="o">&lt;/</span><span class="n">key</span><span class="o">&gt;</span>
+</span><span class='line'>              <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">{</span><span class="n">App</span><span class="err">名称</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">string</span><span class="o">&gt;</span>
+</span><span class='line'>          <span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>      <span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;/</span><span class="n">array</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">dict</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">plist</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>网页模板</h2>
+
+<ul>
+<li>注: {}里的内容是要替换的</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="o">&lt;!</span><span class="n">DOCTYPE</span> <span class="n">html</span> <span class="n">PUBLIC</span> <span class="s">&quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot;</span> <span class="s">&quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">html</span> <span class="n">xmlns</span><span class="o">=</span><span class="s">&quot;http://www.w3.org/1999/xhtml&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">head</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="n">http</span><span class="o">-</span><span class="n">equiv</span><span class="o">=</span><span class="s">&quot;Content-Type&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s">&quot;text/html; charset=UTF-8&quot;</span> <span class="o">/&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">meta</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;viewport&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s">&quot;width=320, height=460, user-scalable=no,</span>
+</span><span class='line'><span class="n">initial</span><span class="o">-</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="s">&quot; /&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">title</span><span class="o">&gt;</span><span class="n">Install</span> <span class="n">Dev</span> <span class="n">App</span><span class="o">&lt;/</span><span class="n">title</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">head</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">br</span><span class="o">/&gt;&lt;</span><span class="n">br</span><span class="o">/&gt;&lt;</span><span class="n">br</span><span class="o">/&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">body</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">div</span> <span class="n">align</span><span class="o">=</span><span class="s">&quot;center&quot;</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;itms-services://?action=download-manifest&amp;url={http://doruby.com/xxx.plist}&quot;</span>  <span class="n">style</span><span class="o">=</span><span class="s">&quot;color:orange; font-size:24px&quot;</span><span class="o">&gt;</span><span class="n">Install</span> <span class="n">the</span> <span class="n">App</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">body</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">html</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>注意:</h2>
+
+<p>可能需要配置你的 Web 服务器以便正确地传输清单文件和应用程序文件。</p>
+
+<ul>
+<li>对于 OS X Server，将以下 MIME 类型添加到 Web 服务的“MIME Types”（MIME 类型）设置中：</li>
+</ul>
+
+
+<p>application/octet-stream ipa</p>
+
+<p>text/xml plist</p>
+
+<ul>
+<li>对于 IIS，使用 IIS Manager 在服务器的“属性”页面中添加 MIME 类型：</li>
+</ul>
+
+
+<p>.ipa application/octet-stream</p>
+
+<p>.plist text/xml</p>
+
+<h2>参考:</h2>
+
+<p><a href="http://help.apple.com/iosdeployment-apps/mac/1.1/#app43ad871e">wireless enterprise app distribution</a></p>
+
+<p><a href="http://thirteendaysaweek.com/2012/10/01/enterprise-deployment-of-ios-apps-with-monotouch/">enterprise deployment of ios apps</a></p>
+
+<p>example:</p>
+
+<p><a href="http://www.doruby.com/assets/food.html">my app</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ARC 与内存管理]]></title>
+    <link href="http://doruby.com/blog/2013/04/24/arc-with-memory-management/"/>
+    <updated>2013-04-24T13:15:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/04/24/arc-with-memory-management</id>
+    <content type="html"><![CDATA[<p>ARC: Automatic Reference Counting (自动引用计数)</p>
+
+<p>ARC 是 iOS 5 后推出的一项为Objective - C程序在编译时提供自动内存管理的功能。ARC可以让你把注意力集中在你感兴趣的代码，减少开发中的内存管理步骤，简化开发。</p>
+
+<p>它通过指定的语法，让编译器(LLVM 3.0)在编译代码时，自动生成实例的引用计数管理部分代码。有一点，ARC并不是GC，它只是一种代码静态分析（Static Analyzer）工具。</p>
+
+<p>在过往我们通常使用的是MRC: Manual Reference Counting(手动内存管理)。这些规则将逐渐变为本能，你会发现少一个release的代码怎么看怎么别扭，从而减少或者杜绝内存管理的错误。可以说MRC的规则非常简单，但是同时也非常容易出错。往往很小的错误就将引起crash或者leak之类问题。</p>
+
+<p>很多人担心内存管理不受自己控制，其实这是对于ARC机制了解不足从而不自信，所导致的对新事物的恐惧。</p>
+
+<p>下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。</p>
+
+<!-- more -->
+
+
+<h2>需要的基本环境:</h2>
+
+<p>ARC is supported in Xcode 4.2 for OS X v10.6 and v10.7 (64-bit applications) and for iOS 4 and iOS 5. Weak references are not supported in OS X v10.6 and iOS 4.</p>
+
+<p><strong>注意：iOS4 不支持 weak 引用</strong></p>
+
+<h2>原理</h2>
+
+<p><img src="http://developer.apple.com/library/ios/releasenotes/ObjectiveC/RN-TransitioningToARC/Art/ARC_Illustration.jpg" alt="ARC Illustration" /></p>
+
+<pre><code>ARC的一个基本原则: 只要某个对象被任一strong指针引用，那么它将不会被销毁。当对象没有被任何strong指针引用时，那么就将被销毁。
+</code></pre>
+
+<h2>默认行为</h2>
+
+<p>对象默认为声明为 strong 类型, ARC 确保对象在函数体内是不会被 dealloc。比如</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">takeLastNameFrom:</span><span class="p">(</span><span class="n">Person</span> <span class="o">*</span><span class="p">)</span><span class="nv">person</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">NSString</span> <span class="o">*</span><span class="n">oldLastname</span> <span class="o">=</span> <span class="p">[</span><span class="n">self</span> <span class="n">lastName</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="nl">setLastName:</span><span class="p">[</span><span class="n">person</span> <span class="n">lastName</span><span class="p">]];</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Lastname changed from %@ to %@&quot;</span><span class="p">,</span> <span class="n">oldLastname</span><span class="p">,</span> <span class="p">[</span><span class="n">self</span> <span class="n">lastName</span><span class="p">]);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>强制规则</h2>
+
+<ul>
+<li><p>你不能再调用 dealloc 或者实现、调用 retain, release, retainCount, autorelease, 同样@selector(retain), @selector(release)也是不允许的，
+当然你可以实现 dealloc 方法，来管理你的实例变量，或者你会调用 [systemClassInstance setDelegate:nil]等.定制的 dealloc 方法不需要写 [super dealloc],这个动作会默认调用。</p>
+
+<p>你仍然可以用 CFRetain, CFRelease 和相关Core Foundation方法。 如果要管理这类对象可以参考：(Managing Toll-Free Bridging 管理自由桥接)</p></li>
+<li><p>你不能使用 NSAllocateObject 或 NSDeallocateObject</p>
+
+<p>创建对象用 alloc</p></li>
+<li><p>你不能在 C 结构体中使用对象指针</p>
+
+<p>因此下面代码是不可用的</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">selectedImage</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">disabledImage</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span> <span class="n">ButtonImages</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  建议是用 OC类来管理它们</p>
+
+<ul>
+<li><p>不能随意在 id 与 void * 之间随意转换</p>
+
+<p>编译器同样是无法管理 void * 这类 Core Foundation类型的东东，都要用 Managing Toll-Free Bridging 进行生命同期的管理。</p></li>
+<li><p>你不能再使用 NSAutoreleasePool 对象</p>
+
+<p>ARC 提供了性能更好的 @autoreleasepool block 替换原来这类使用方式。</p></li>
+<li><p>你不能使用内存区</p>
+
+<p>你不需要再使用 NSZone 等这类对象，因为现在Objective-C运行时已经忽略NSZone了，所以没必要再使用NSZone了。</p></li>
+<li><p>你不能使用 new 开头的属性名，但你可以手动指定 getter 方法名</p>
+
+<p>例如:</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 非法:</span>
+</span><span class='line'><span class="k">@property</span> <span class="n">NSString</span> <span class="o">*</span><span class="n">newTitle</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// OK:</span>
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">getter</span><span class="o">=</span><span class="n">theNewTitle</span><span class="p">)</span> <span class="n">NSString</span> <span class="o">*</span><span class="n">newTitle</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<h1>ARC 新的对象生命周期声明</h1>
+
+<ul>
+<li>属性</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 用 strong 代替 retain, @property(retain) MyClass *myObject;</span>
+</span><span class='line'><span class="k">@property</span><span class="p">(</span><span class="n">strong</span><span class="p">)</span> <span class="n">MyClass</span> <span class="o">*</span><span class="n">myObject</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 用 weak 代替 assign &quot;@property(assign) MyClass *myObject;&quot;</span>
+</span><span class='line'><span class="c1">// 实例变量被释放后，会自动赋予 nil 指针，省得我们自己在手动赋nil操作。</span>
+</span><span class='line'><span class="k">@property</span><span class="p">(</span><span class="n">weak</span><span class="p">)</span> <span class="n">MyClass</span> <span class="o">*</span><span class="n">myObject</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 ARC 中 strong 将是默认的类型.</p>
+
+<ul>
+<li>变量</li>
+</ul>
+
+
+<p>变量同样有以下几种管理生命周期的声明</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">__strong</span>
+</span><span class='line'><span class="n">__weak</span>
+</span><span class='line'><span class="n">__unsafe_unretained</span>
+</span><span class='line'><span class="n">__autoreleasing</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>__unsafe_unretained 类似原来的 assign</p>
+
+<p>所以你可以这样声明这些对象</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyClass</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">myWeakReference</span><span class="p">;</span>
+</span><span class='line'><span class="n">MyClass</span> <span class="o">*</span> <span class="n">__unsafe_unretained</span> <span class="n">myUnsafeReference</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>需要注意的是 __weak 变量在栈中的情况，例如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSString</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">string</span> <span class="o">=</span> <span class="p">[[</span><span class="n">NSString</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithFormat:</span><span class="s">@&quot;First Name: %@&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">self</span> <span class="n">firstName</span><span class="p">]];</span>
+</span><span class='line'><span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;string: %@&quot;</span><span class="p">,</span> <span class="n">string</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>尽管 string 被实例化，但由于 string 声明为 weak 类型，它没有 strong 这个引用，所以他在赋值后立即就被释放了,在Log它时，它已经被释放了。</p>
+
+<h2>同样你也要注意对象值传递. 比如下面的代码</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">;</span>
+</span><span class='line'><span class="kt">BOOL</span> <span class="n">OK</span> <span class="o">=</span> <span class="p">[</span><span class="n">myObject</span> <span class="nl">performOperationWithError:</span><span class="o">&amp;</span><span class="n">error</span><span class="p">];</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">OK</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Report the error.</span>
+</span><span class='line'>    <span class="c1">// ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实际上这个代码是这样隐示声明的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSError</span> <span class="o">*</span> <span class="n">__strong</span> <span class="n">e</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而函数是这样被声明了的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">performOperationWithError:</span><span class="p">(</span><span class="n">NSError</span> <span class="o">*</span> <span class="n">__autoreleasing</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以最后编译的结果就是:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSError</span> <span class="o">*</span> <span class="n">__strong</span> <span class="n">error</span><span class="p">;</span>
+</span><span class='line'><span class="n">NSError</span> <span class="o">*</span> <span class="n">__autoreleasing</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">error</span><span class="p">;</span>
+</span><span class='line'><span class="kt">BOOL</span> <span class="n">OK</span> <span class="o">=</span> <span class="p">[</span><span class="n">myObject</span> <span class="nl">performOperationWithError:</span><span class="o">&amp;</span><span class="n">tmp</span><span class="p">];</span>
+</span><span class='line'><span class="n">error</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">OK</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Report the error.</span>
+</span><span class='line'>    <span class="c1">// ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当本地变量声明(<strong>strong *error)和函数的参数((NSError * </strong>autoreleasing <em>)error)不匹配的时候，编译器会创建一个临时变量。当你获得一个<strong>strong变量的地址时，你可以初始化一个id </strong>strong </em>的指针来声明 ，这样你就可以获得指针的原型，或者你可以声明一个变量为 __autoreleasing。</p>
+
+<h1>避免循环引用</h1>
+
+<p>你可以使用生命周期修饰符来避免Strong引用周期。例如，当你制作了一组父子结构的对象，而且父类要引用子类，则会出现Strong引用周期；反之，当 你将一个父类指向子类为strong引用，子类指向父类为weak引用，就可以避免出现Strong引用周期。当对象包含block objects时，这样的情况会变的更加隐性。</p>
+
+<p>在手动内存管理模式下， <code>__block id x</code>; x不会被 retaining
+在ARC模式下，<code>__block id x</code> , 默认被retaining</p>
+
+<p>为了使手动内存管理模式代码可以在ARC模式下正常工作， 你可以用 <code>__unsafe_unretained</code> 来修饰 <code>__block id</code> x;。就和&#8221;<strong>unsafe_unretained&#8221;字面上的意思一样, 不过,这样一个non-retained变量是危险的(因为它会变成一个野指 针) 会带来不良后果。有两种更好一点的方法来处理，一是使用</strong>weak (当你不需要支持iOS 4或OS X v10.6), 二是设__block值为nil，结束他的生命周期。</p>
+
+<ul>
+<li>这是MRC时代处理 __block 里对象释放问题:</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span><span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>   <span class="p">[</span><span class="n">myController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="p">[</span><span class="n">self</span> <span class="nl">presentViewController:</span><span class="n">myController</span> <span class="nl">animated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>   <span class="p">[</span><span class="n">myController</span> <span class="n">release</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你可以使用 __block修饰符然后设置myController的值为nil 替代上面的方式:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span> <span class="n">__block</span> <span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">myController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">myController</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>无伦哪种形式，你都可以使用一个 weak 引用对象避免循环引用:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span><span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">MyViewController</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">weakMyViewController</span> <span class="o">=</span> <span class="n">myController</span><span class="p">;</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">weakMyViewController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在某个时候这个对象，如果放在异步执行时，对象可能已经被释放，所以需要一个 strong 的对象把它 hold 住。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span><span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">MyViewController</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">weakMyController</span> <span class="o">=</span> <span class="n">myController</span><span class="p">;</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">MyViewController</span> <span class="o">*</span><span class="n">strongMyController</span> <span class="o">=</span> <span class="n">weakMyController</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">strongMyController</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// ...</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">strongMyController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>        <span class="c1">// ...</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// Probably nothing...</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>栈里的变量初始化即为 nil</h2>
+
+<p>使用ARC后， strong, weak, autoreleasing 栈里的变量默认初始为nil</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">myMethod</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">NSString</span> <span class="o">*</span><span class="n">name</span><span class="p">;</span> <span class="c1">// 这里 name 已经被赋予了nil指针， 所以下面的代码不会出错。</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;name: %@&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>修改编译的Flag 打开和关闭 ARC</h2>
+
+<p>如果有遇到第三方插件，或有一些文件你不想用 ARC 来控制，可以在 Build Phases > Compile Sources > 某个文件上 > Compiler Flags: -fno-objc-arc</p>
+
+<p>相互如果想在部分文件中用到 arc 则标记上: -fobjc-arc</p>
+
+<p><img src="http://doruby.com/assets/compiler_flags_arc.png" alt="Compiler flags for arc" /></p>
+
+<h2>Managing Toll-Free Bridging</h2>
+
+<p>由于ARC不能管理Core Foundation Object的生命周期，所以在Core Foundation和ARC之间，我们需要使用到<strong>bridge,</strong>bridge_retained和__bridge_transfer三个转换关键字。</p>
+
+<p>__bridge只做类型转换，但是不修改对象（内存）管理权；</p>
+
+<p>__bridge_retained（也可以使用CFBridgingRetain）将Objective-C的对象转换为Core Foundation的对象，同时将对象（内存）的管理权交给我们，后续需要使用CFRelease或者相关方法来释放对象；</p>
+
+<p>__bridge_transfer（也可以使用CFBridgingRelease）将Core Foundation的对象转换为Objective-C的对象，同时将对象（内存）的管理权交给ARC。</p>
+
+<h2>使用weak property声明Outlet</h2>
+
+<p>在被ARC处理过的iOS和OS X中，声明的outlets将会趋于统一。</p>
+
+<p>一般来说outlets变量被修饰为weak，但是如果outlets变量的所有者是nib文件中的top-level对象(或者是storyboard scene)时，应被修饰为strong。</p>
+
+<p>详细参考Resource Programming Guide中的“Nib Files”。</p>
+
+<p>当我们使用 Interface Builder 生成Outlet对象的时候，一般都是作为 subview 来使用的。比如 UIViewController 的view。所以说Outlet的持有者就是superview对象，即有“父子”关系。我们知道，当对象间有“父子”关系时，需要使用弱参照，以避免“循环参照”。</p>
+
+<p>ViewController 本身是不会作为Outlet的所有者的，所以使用weak property声明。</p>
+
+<p><img src="http://doruby.com/assets/arc_outlet_weak_property.png" alt="arc outlet weak property" /></p>
+
+<p>简化viewDidUnload</p>
+
+<p>Outlet都使用weak property声明的时候，还有一个好处，就是简化viewDidUnload的处理。</p>
+
+<p>iOS在系统内存不足的时候，UIViewController会将没有表示的所有view做unload处理，即调用viewDidUnload接口。</p>
+
+<p>所以，如果是强参照的情况下，需要释放所有权，</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">strong</span><span class="p">)</span> <span class="kt">IBOutlet</span> <span class="n">UILabel</span> <span class="o">*</span><span class="n">label</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">viewDidUnload</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">self</span><span class="p">.</span><span class="n">label</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span> <span class="c1">// 取消强参照，释放所有权</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">super</span> <span class="n">viewDidUnload</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果没有 self.label = nil 的处理，那么 UIViewController 将不会释放 label 的所有权；结果，系统是调用了unload，但是subview对象始终留在内存中。随着界面上控件的增多，内存泄露会越来越大。</p>
+
+<p>如果使用的是weak property声明的话，会是怎样的呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">weak</span><span class="p">)</span> <span class="kt">IBOutlet</span> <span class="n">UILabel</span> <span class="o">*</span><span class="n">label</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时，系统在unload时，由于label没有被强参照，更加ARC的规则，这时，label的对象即被释放。并在释放的同时，变量自动指向nil。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">viewDidUnload</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// 这里什么也不用管</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">super</span> <span class="n">viewDidUnload</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其实，如果我们的viewDidUnload只是用来释放Outlet用的话，那么该函数也可以不被重载的。</p>
+
+<p>什么时候要用strong property</p>
+
+<p>由上我们也可以看到，并不是所有的Outlet都用weak来声明都是正确的；当使用Interface Builder生成的第一层的view或者windows被作为Outlet来使用的话，那么不是不能声明为weak property的。（比如，Storyboard的各个scene）</p>
+
+<h1>转化原MRC项目到ARC</h1>
+
+<ul>
+<li><p>用Xcode自带工具转换MRC项目到ARC:
+Edit > Refactor > Convert to Objective-C ARC)</p>
+
+<p><img src="http://doruby.com/assets/tool_for_convert_to_oc_arc.png" alt="Provides a tool that convert to ARC" /></p>
+
+<p>在这个选项下，还有一个 Convert to Modern Objective-C Syntax.. 转化成更现代的写法, 有兴趣的可以试试。:)</p>
+
+<p>在转化的过程中，编译器会先对代码进行检查，如果遇到错误警告，可以根据提示进行处理后，再进行转化 (如果你要无视这些错误可以在Preferences 里设定 Continue building after errors)</p></li>
+<li><p>将项目用ARC方式编译
+Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设置为 Yes</p>
+
+<p><img src="http://doruby.com/assets/convert_to_arc_in_llvm.png" alt="Convert to ARC in LLVM" /></p></li>
+</ul>
+
+
+<h1>常见问题</h1>
+
+<ul>
+<li><p>通常遇到的错误有这样一些：</p>
+
+<p><code>Receiver type ‘X’ for instance message is a forward declaration</code></p>
+
+<p>这往往是引用的问题。ARC要求完整的前向引用，也就是说在MRC时代可能只需要在.h中申明@class就可以，但是在ARC中如果调用某个子类中未覆盖的父类中的方法的话，必须对父类.h引用，否则无法编译。</p>
+
+<p><code>Switch case is in protected scope</code></p>
+
+<p>现在switch语句必须加上{}了，ARC需要知道局部变量的作用域，加上{}后switch语法更加严格，否则遇到没有break的分支的话内存管理会出现问题。</p>
+
+<p><code>A name is referenced outside the NSAutoreleasePool scope that it was declared in</code></p>
+
+<p>这是由于写了自己的 autoreleasepool，而在转换时在原来的pool中申明的变量在新的@autoreleasepool中作用域将被局限。解决方法是把变量申明拿到pool的申请之前。</p>
+
+<p><code>ARC forbids Objective-C objects in structs or unions</code></p></li>
+<li><p>ARC 需要你指定 super init 的结果到 self
+ [super init]; // 这将是无效的</p>
+
+<p> 推荐用</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>   <span class="n">self</span> <span class="o">=</span> <span class="p">[</span><span class="n">super</span> <span class="n">init</span><span class="p">];</span>
+</span><span class='line'>   <span class="k">if</span> <span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实例变量会变成 strong 类型</p>
+
+<p>在用 ARC 之前, thing 这个变量是一个 weak 类型</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MyClass</span> : <span class="nc">Superclass</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">id</span> <span class="n">thing</span><span class="p">;</span> <span class="c1">// Weak reference.</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">@</span><span class="n">implementation</span> <span class="n">MyClass</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">thing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">setThing:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">newThing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">thing</span> <span class="o">=</span> <span class="n">newThing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用 ARC 后，thing 变量实际上是默认用了 strong 类型，所以如果你要想继续使用 weak 类型，必须显示声明</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MyClass</span> : <span class="nc">Superclass</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">id</span> <span class="n">__weak</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">@</span><span class="n">implementation</span> <span class="n">MyClass</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">thing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">setThing:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">newThing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">thing</span> <span class="o">=</span> <span class="n">newThing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MyClass</span> : <span class="nc">Superclass</span>
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">weak</span><span class="p">)</span> <span class="kt">id</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">MyClass</span>
+</span><span class='line'><span class="k">@synthesize</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>首先，我们需要转变一下观念, 对于在.h中申明的实例变量：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MainViewController</span> : <span class="nc">UIViewController</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">NSOperationQueue</span> <span class="o">*</span><span class="n">queue</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们不妨仔细考虑一下，为什么在interface里出现了实例变量的申明？通常来说，实例变量只是在类的实例中被使用，而你所写的类的使用者并没有太多必要了解你的类中有哪些实例变量。而对于绝大部分的实例变量，应该都是protected或者private的，对它们的操作只应该用setter和getter，而这正是property所要做的工作。可以说，将实例变量写在头文件中是一种遗留的陋习。更好的写实例变量名字的地方应当与类实现关系更为密切，为了隐藏细节，我们应该考虑将它们写在@implementation里。好消息是，在LLVM3.0中，不论是否开启ARC，编译器是支持将实例变量写到实现文件中的。甚至如果没有特殊需要又用了property，我们都不应该写无意义的实例变量申明，因为在@synthesize中进行绑定时，我们就可以设置变量名字了，这样写的话可以让代码更加简洁。</p>
+
+<p>在这里我们对实例变量申明移到.m里中。修改后的.h是这样的，十分简洁</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@implementation</span> <span class="nc">MainViewController</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">NSOperationQueue</span> <span class="o">*</span><span class="n">queue</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的写法让代码相当灵活，而且不得不承认.m确实是这些实例变量的应该在的地方</p>
+
+<p>参考资料:</p>
+
+<ul>
+<li><a href="http://developer.apple.com/library/ios/#documentation/Cocoa/Conceptual/MemoryMgmt/Articles/MemoryMgmt.html#//apple_ref/doc/uid/10000011i">About Memory Management</a></li>
+</ul>
+
+
+<p><img src="http://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/MemoryMgmt/Art/memory_management_2x.png" alt="memory managment" /></p>
+
+<ul>
+<li><p><a href="http://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html">Transitioning to ARC</a></p></li>
+<li><p><a href="http://clang.llvm.org/docs/AutomaticReferenceCounting.html#blocks">Objective-C Automatic Reference Counting</a></p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[模块化设计-iOS团队协作开发 v1.0]]></title>
+    <link href="http://doruby.com/blog/2013/04/12/block-based-design/"/>
+    <updated>2013-04-12T09:28:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/04/12/block-based-design</id>
+    <content type="html"><![CDATA[<h2>现状</h2>
+
+<p>当项目发展到一定阶段，功能会变得越来越庞大，修改一个功能可能有牵一发而动全身的感觉，维护变的相当吃力。如果只是扩充项目成员的话，协作也会成为一种障碍，人多反而不能提高生产率。 如果只是一、两个成员开发的项目还好说，之间的沟通与协作更加灵活而松散，也许吼一嗓子就可以完成。 但如果人员也从几个到十几个，甚至几十个。就不能再靠传统流程开发了，需要更深入系统架构层面将大家工作进行规范与限定，制定标准。</p>
+
+<p>这个时候我们就需要更好的架构设计应用，使得开发与协作变得更加高效，功能的耦合性变得更小。在设计领域有一种概念是模块化设计(Block-based design).  按此概念的意思是说 &#8220;对一定范围内的不同功能或相同功能不同性能、不同规格的产品进行功能分析的基础上，划分并设计出一系列功能模块，通过模块的选择和组合构成不同的顾客定制的产品，以满足市场的不同需求&#8221;。ok, 这正是我们想要的结果.</p>
+
+<p>模块化设计也是绿色设计方法之一,所谓绿色设计是指&#8221;在产品整个生命周期内，着重考虑产品环境属性（可拆卸性，可回收性、可维护性、可重复利用性等）并将其作为设计目标，在满足环境目标要求的同时，保证产品应有的功能、使用寿命、质量等要求&#8221;.绿色设计的原则被公认为“3R”的原则，即Reduce,Reuse,Recycle，减少环境污染、减小能源消耗，产品和零部件的回收再生循环或者重新利用。</p>
+
+<p>无论是从工业设计还是软件设计，实际上都是尊崇以上的原则。注意上面几点，可拆卸性，可回收性、可维护性、可重复利用性. 我们就从这里入手重新设计。(PS:无畏的重复开发也算是一种能源消耗吧，嗯，至少我们也是爱护环保人士)</p>
+
+<p>从以往开发Web应用的经验来说，模块的划分可以从业务层面或功能层面上决定。业务层面上，你可以将不同的业务划分成各个子模块，好比公司的各个职能部门，事业一部，事业二部，后勤部门，人事部门等。从业务的层面上划分，会使得各个模块更加独立，不用和其它的部门打交道也能完成日常的事务。不过缺点是，一些如果处理公共的事务将会变得繁琐。 另外一个选择是从功能层面上，比如资料管理，订单管理，财务管理等,优点是职责清晰，不过缺点就是各管一方，事务缺少连续性。</p>
+
+<p>举个实际的例子，有一个功能需求是查询与记录，查询有食物查询，运动查询，体重查询等等。对应的也会有食物记录，运动记录，体重记录。 如果从业务上划分可以是食物管理，运动管理，体重管理，各自记录各自的信息，各自独立，互不干扰。可在一个地方就完成所有操作。但如果现在我们要收集所有的记录信息，并且各自还需要一些协作完成操作的话，这样各个功能之间的协调就会变得困难。 所以还有一个方法是按功能来划分，查询模块，记录模块， 查询模块只负责查询，查询的类型分为三种，然后需要记录的时候将信息传送到记录模块，进行一并记录。这样的好处是当我们职责各加清晰，信息统一。</p>
+
+<p>无伦从哪个角度来划分模块其实都有各自的优缺点，我们需求上来设计实际的项目，即使他们功能独立，减低耦合，又要使得信息的流转变得简单。 理论讲的差不多了，我们这里除开项目管理的基本要求，比如开发文档，注释规范，各种图等不提，拆分的方式根据你自己的业务需求自行选择拆分方式，这里只讲讲开发中如何协调和整合它们。
+好吧。下面上干货了。</p>
+
+<!-- more -->
+
+
+<h2>iOS 团队开发实践</h2>
+
+<p>我们先把现在遇到的问题列出来，然后一一解决。</p>
+
+<ul>
+<li>问题: 之前我们在一个大项目里，各自负责各自的功能，代码在一个项目里管理，如果只有一个项目还好说，如果另一个项目需要其中一个功能了，那开发这个功能的人就成了搬砖头的工作泥头工了。</li>
+</ul>
+
+
+<p>解决方案：所以将各个功能按职责剥离出来，各自开发各自的功能模块。能独立运行，能编译为静态库，有完整的内部接口文档。符合上面的可拆卸性，可回收性、可维护性、可重复利用性。</p>
+
+<ul>
+<li>问题: 以往各个模块整合在一起时，功能之间的调用基本是通过 import 某个类的接口头文件完成.这样使得某个功能会非常依赖另一接口的实现，假如有一天，一个专门负责这个接口的人换了实现方法或这个接口就不存在了，而又没通知到引用的人，就会发生错误，你也许会说，可以保留原有接口，加上即将作废的提示，然后用替代方法进行转换。或直接告诉团队的成员，使用新的 sdk 等。 但这些操作如果变得非常频繁或不确定就会成为障碍。</li>
+</ul>
+
+
+<p>解决方案：在Rails 框架中有一个叫 Routes表的文件，用来将用户的Web请求定位到某个Controller的某个Action. 我们是不是也可以将调用看作是用户的一次 Web 请求呢。只要存在这样一张 routes 表，就可以将这个请求映射到指定的路径。 所以首先想到的是有一个专门的职能模块去构造这张表，然后维护它，相当于cocoa里的 notification center。 不过和 notification center不同的是，我们的这个 routes 表，也可以称为规则表是在应用启动时就已经创建好了的。相当于智能路由器已经配置好不同的路由方向一样。</p>
+
+<p>如何构建这张表呢，同样在Rails里也会有引用第三方的 Plugin 概念,我们也可以把各个模块看作 Plugin，Plugin自己定义自己的路由规则，然后由 route center将所有的规则合并在一起，如果其中一个模块发生变化，只需要改写自己的routes即可，不需要通知其它引用的人，除非你的命名规则发生变化。</p>
+
+<p>接下来如何构造这个请求呢？通知机制，也就是 notification , 相当于你吼一嗓子，我要去干嘛干嘛,谁来帮我处理。然后 route center 会接收此请求，根据里面的规则转送到指定的模块中处理，这样就减小了他们之间的相互依赖。</p>
+
+<p>在具体实现时，还会有线程选择、广播或点到点方式、立即返回结果等规则的定义。不过需要注意的是可能发会生的广播风暴。</p>
+
+<ul>
+<li>问题: 如果模块拆分后，各个模块经常会有第三方库的依赖，各个模块之间也会有所依赖，比如公共库等。如何避免重复引用及引用版本的问题。</li>
+</ul>
+
+
+<p>解决方案：用 cocoapods 软件解决，本身 cocoapods 也是用 ruby 脚本写的工具，所以改起来也比较方便。第三方的依赖全部由它自带的podfile 配置完成，它会根据你的第三方引用打包于项目中，如果遇到多个重复引用时，它会将起合并引用。 我们的各个模块也可以做成独立的 podspecs 文件，供其它模块引用，这样就可以实现了模块的升级与更新。</p>
+
+<ul>
+<li>问题: 如果要联合调试时，如何使用呢？比如其中一个功能要与另一个功能进行整合测试时，遇到更改特别频繁的时候，将会是件相当痛苦的事。</li>
+</ul>
+
+
+<p>解决方案：通过git submodule 方式将子模块引入进来，这样你可以在联调时，更改子模块的部分也可以通过 submodule 一并提交。</p>
+
+<ul>
+<li>问题: 我们还会遇到在不同的配置环境下，要引入不同的配置，比如 debug 与 release 模式调用的 api 不同情况。</li>
+</ul>
+
+
+<p>解决方案：也同样模拟 rails 的 environments 方式，将项目针对不同的环境生成不同的配置文件。然后定义各自的配置属性。</p>
+
+<p>通过以上架构的调整后，项目模块间将变得非常松散，同时整合在一起时也非常简单，将模块通过 cocoapods 构成依赖，模块间数据的访问基本很少变动，最多只是将 UI 进行定制渲染。如果 UI 再进一步拆分的话，不同的部分 render 不同的内容，将可以变得更加灵活。</p>
+
+<p>参考：</p>
+
+<p><img src="http://doruby.com/assets/one_block_based.png" alt="one block based" /></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在Xcode里,为项目定义不同的环境配置]]></title>
+    <link href="http://doruby.com/blog/2013/02/28/env-of-project-on-xcode/"/>
+    <updated>2013-02-28T09:30:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/02/28/env-of-project-on-xcode</id>
+    <content type="html"><![CDATA[<p>有时项目经常需要配置不同的开发环境，比如Debug, QA, Release, Distribution等。每个环境下，会有各自不同的环境配置项，比如变量，常量，宏定义等。</p>
+
+<p>我们最早的方法是先在Build Settings里先设定 Preprocessor Macros CONFIGURATION_$(CONFIGURATION)</p>
+
+<p>这样我们就可以在代码根据该 Macro 来区分现在所处的环境。通过我们是定义在 Prefix.pch 文件里:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#ifdef CONFIGURATION_Debug</span>
+</span><span class='line'><span class="cp">#   import &quot;ConfigDebug.h&quot;</span>
+</span><span class='line'><span class="cp">#else</span>
+</span><span class='line'><span class="cp">#   ...</span>
+</span><span class='line'><span class="cp">#endif</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在想到的更好的方法是直接修改Prefix Header的引用路径</p>
+
+<p>在 Project 里的 Build Settings 里设定 Prefix Header 文件的导入位置.</p>
+
+<!-- more -->
+
+
+<p><img src="http://doruby.com/assets/settingsPrefixHeader.png" alt="settings prefix header" /></p>
+
+<p>比如: Test/Config/Test-Prefix-${CONFIGURATION}.pch</p>
+
+<p>我们新建了一个Config目录，然后在里面添加了 Test-Prefix-Debug.pch , Test-Prefix-Release.pch 等不同的环境配置文件.</p>
+
+<p>Test-Prefix-Debug.pch</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigDebug.h&quot;</span>
+</span><span class='line'><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Test-Prefix-Release.pch</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">import</span> <span class="s">&quot;ConfigRelease.h&quot;</span>
+</span><span class='line'><span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>关于各项环境配置应该放在哪儿比较好?</h2>
+
+<p>我们有时会定义一些自己的Macro, 通常我们也是象上面一样写在Preprocessor Macros 里。 实际上更好的方法是建立不同的 .xcconfig 文件, 然后将Target的配置指向它们</p>
+
+<p>比如我们建立一个 Debug.xcconfig, Release.xcconfig</p>
+
+<p>将 PROJECT Info => Configurations => target Based on Configuration File 指向不同环境下的config文件。</p>
+
+<p><img src="http://doruby.com/assets/targetConfigurations.png" alt="target configurations" /></p>
+
+<p>我们就可以在这个文件上定义自己的Macro了，比如</p>
+
+<p>Debug.xcconfig</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">TestMacroDef</span> <span class="o">=</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Release.xcconfig</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">TestMacroDef</span> <span class="o">=</span> <span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你可以在Build Settings中看到User-Defined一栏多了你自定义的Macro</p>
+
+<p>我们还可以改变或添加系统默认的定义，比如上面在 Preprocessor Macros里定义的内容，可以这样写</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">GCC_PREPROCESSOR_DEFINITIONS</span> <span class="o">=</span> <span class="n">kShareKey</span><span class="o">=</span><span class="mi">1</span> <span class="n">$</span><span class="p">(</span><span class="n">inherited</span><span class="p">)</span> <span class="c1">// inherited 是继承原有的定义</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>tips: 你可以选中settings的一栏copy， paste 到这个文件中，即可知道定义方法。</p>
+
+<p>如果我们有一些公共的配置文件，可以创建一个 公共的 xcconfig 文件，然后 include 进来即可。</p>
+
+<p>比如</p>
+
+<p>Debug.xcconfig</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#include &quot;Shared.xcconfig&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[点击阴影区关闭打开的Modal View Controller]]></title>
+    <link href="http://doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/"/>
+    <updated>2013-01-24T11:03:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region</id>
+    <content type="html"><![CDATA[<p>参考：<a href="http://mengxiangping.com/?p=121">Close Modal View Controller by tap the shadow region</a></p>
+
+<p>如何实现用户点击阴影区域，将当前出现的ModalViewController消失
+<img src="http://doruby.com/assets/modalViewC.png" alt="modal view controller" /></p>
+
+<p>首先了解一下: UIApplicationMain</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="err">@</span><span class="n">autoreleasepool</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">UIApplicationMain</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="nb">nil</span><span class="p">,</span> <span class="n">NSStringFromClass</span><span class="p">([</span><span class="n">AppDelegate</span> <span class="n">class</span><span class="p">]));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>argc 与 argv 是标准的c main 函数参数。 第三个参数是接收事件响应的主要对象(principalClassName)，如果存在的话必须是继承UIApplication, 第四个 delegateClassName, 实现 UIApplicationDelegate 中的协议方法.</p>
+
+<p>任何时刻你点击屏幕，principalClassName都会监听, 并执行sendEvent方法, 所以我们只要拦截这个方法，然后做我们想做的事情就可以了。</p>
+
+<h2>实现</h2>
+
+<!-- more -->
+
+
+<p><strong>测试环境：iOS5, iPad</strong></p>
+
+<p>改变main的第三个参数对象为 我们自己定义的一个 MyAppplication 类。</p>
+
+<p>main.m</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="err">@</span><span class="n">autoreleasepool</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="n">UIApplicationMain</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="s">@&quot;MyApplication&quot;</span><span class="p">,</span> <span class="n">NSStringFromClass</span><span class="p">([</span><span class="n">AppDelegate</span> <span class="n">class</span><span class="p">]));</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>.h file</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">MyApplication</span> : <span class="nc">UIApplication</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>.m file</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &quot;MyApplication.h&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">MyApplication</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">sendEvent:</span><span class="p">(</span><span class="n">UIEvent</span> <span class="o">*</span><span class="p">)</span><span class="nv">event</span><span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">[</span><span class="n">super</span> <span class="nl">sendEvent:</span><span class="n">event</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// 关键是在这里拿到点击事件后,如果判断点击的是阴影区, 阴影区的View 是一个私有类, 名字叫UIDimmingView, 所以如果响应的点击事件是在这个View上的，我们就可以关闭当前的ModalView</span>
+</span><span class='line'>  <span class="n">UITouch</span><span class="o">*</span> <span class="n">touch</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">event</span> <span class="n">allTouches</span><span class="p">]</span> <span class="n">allObjects</span><span class="p">]</span> <span class="n">lastObject</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="p">([</span><span class="n">NSStringFromClass</span><span class="p">([[</span><span class="n">touch</span> <span class="n">view</span><span class="p">]</span> <span class="n">class</span><span class="p">])</span> <span class="nl">isEqualToString:</span><span class="s">@&quot;UIDimmingView&quot;</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">UIViewController</span> <span class="o">*</span> <span class="n">vc</span> <span class="o">=</span> <span class="p">[[[</span><span class="n">self</span> <span class="n">keyWindow</span><span class="p">]</span> <span class="n">rootViewController</span><span class="p">]</span> <span class="n">presentedViewController</span><span class="p">];</span> <span class="c1">// 找到正在显示的控制器</span>
+</span><span class='line'>      <span class="p">[</span><span class="n">vc</span> <span class="nl">dismissModalViewControllerAnimated:</span><span class="n">YES</span><span class="p">];</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[强大的日志分析工具 -- NSLogger]]></title>
+    <link href="http://doruby.com/blog/2012/12/27/hello-world/"/>
+    <updated>2012-12-27T16:43:00+08:00</updated>
+    <id>http://doruby.com/blog/2012/12/27/hello-world</id>
+    <content type="html"><![CDATA[<p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
+
+<p><strong>特点</strong></p>
+
+<ul>
+<li>摆脱Xcode的小窗查看日志</li>
+<li>不用再将iPhone连接到电脑上才能看日志</li>
+<li>支持通过互联网传送日志</li>
+<li>可以输出图片的日志</li>
+<li>可自己定义日志等级</li>
+</ul>
+
+
+<p><img src="https://github.com/fpillet/NSLogger/raw/master/Screenshots/mainwindow.png" alt="nslogger mainwindow" /></p>
+
+<h2>安装</h2>
+
+<p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
+LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
+
+<p>NSLogger 支持Pod方式安装,在你的APP中配置Podfile</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pod</span> <span class="s1">&#39;NSLogger&#39;</span>
+</span><span class='line'><span class="n">pod</span> <span class="n">install</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
+
+<p><a href="http://doruby.com/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
+
+<h2>使用</h2>
+
+<!-- more -->
+
+
+<ul>
+<li><code>#import "LoggerClient.h"</code></li>
+<li>设置客户端网络监控的配置</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">LoggerSetViewerHost</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="n">CFStringRef</span><span class="p">)</span><span class="err">@“</span><span class="mf">127.0.0.1</span><span class="err">”</span><span class="p">,</span> <span class="p">(</span><span class="n">UInt32</span><span class="p">)</span><span class="mi">50000</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这一段代码可以加在main.m里</p>
+
+<ul>
+<li>除了基本的日志可以打印图片的日志</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">UIImage</span> <span class="o">*</span><span class="n">img</span> <span class="o">=</span> <span class="n">ONEDefaultImageWithName</span><span class="p">(</span><span class="s">@&quot;actionBar&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">CGSize</span> <span class="n">sz</span> <span class="o">=</span> <span class="n">img</span><span class="p">.</span><span class="n">size</span><span class="p">;</span>
+</span><span class='line'><span class="n">LogImageData</span><span class="p">(</span><span class="s">@&quot;image&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">UIImagePNGRepresentation</span><span class="p">(</span><span class="n">img</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>为了不动原来的NSLog输出日志方式，可以重新定义NSLog</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">define</span> <span class="n">NSLog</span><span class="p">(...)</span> <span class="n">LogMessageF</span><span class="p">(</span> <span class="n">__FILE__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="n">__FUNCTION__</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">__VA_ARGS__</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<ul>
+<li>打开NSLogger Viewer mac端，在Preferences的Network中，勾选 Listen for loggers on TCP port.端口默认</li>
+</ul>
+
+
+<p><strong>友情提示</strong></p>
+
+<ul>
+<li>如果Xcode编译后，没有发送数据到客户端，可以先 clean 一下。</li>
+<li>客户端建议用 TCP 协议连接,这样监听端口可以固定</li>
+<li>点窗口左下角的 f 可以看到对应的日志文件与行号</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

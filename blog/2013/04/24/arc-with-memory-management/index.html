@@ -1,0 +1,865 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>ARC 与内存管理 - square's blog</title>
+  <meta name="author" content="square">
+
+  
+  <meta name="description" content="ARC: Automatic Reference Counting (自动引用计数) ARC 是 iOS 5 后推出的一项为Objective - C程序在编译时提供自动内存管理的功能。ARC可以让你把注意力集中在你感兴趣的代码，减少开发中的内存管理步骤，简化开发。 它通过指定的语法，让编译器( &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://doruby.com/blog/2013/04/24/arc-with-memory-management/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="square's blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-37287098-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">square's blog</a></h1>
+  
+    <h2>ruby & objc</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:doruby.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">ARC 与内存管理</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-24T13:15:00+08:00" pubdate data-updated="true">Apr 24<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>ARC: Automatic Reference Counting (自动引用计数)</p>
+
+<p>ARC 是 iOS 5 后推出的一项为Objective - C程序在编译时提供自动内存管理的功能。ARC可以让你把注意力集中在你感兴趣的代码，减少开发中的内存管理步骤，简化开发。</p>
+
+<p>它通过指定的语法，让编译器(LLVM 3.0)在编译代码时，自动生成实例的引用计数管理部分代码。有一点，ARC并不是GC，它只是一种代码静态分析（Static Analyzer）工具。</p>
+
+<p>在过往我们通常使用的是MRC: Manual Reference Counting(手动内存管理)。这些规则将逐渐变为本能，你会发现少一个release的代码怎么看怎么别扭，从而减少或者杜绝内存管理的错误。可以说MRC的规则非常简单，但是同时也非常容易出错。往往很小的错误就将引起crash或者leak之类问题。</p>
+
+<p>很多人担心内存管理不受自己控制，其实这是对于ARC机制了解不足从而不自信，所导致的对新事物的恐惧。</p>
+
+<p>下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。</p>
+
+<!-- more -->
+
+
+<h2>需要的基本环境:</h2>
+
+<p>ARC is supported in Xcode 4.2 for OS X v10.6 and v10.7 (64-bit applications) and for iOS 4 and iOS 5. Weak references are not supported in OS X v10.6 and iOS 4.</p>
+
+<p><strong>注意：iOS4 不支持 weak 引用</strong></p>
+
+<h2>原理</h2>
+
+<p><img src="http://developer.apple.com/library/ios/releasenotes/ObjectiveC/RN-TransitioningToARC/Art/ARC_Illustration.jpg" alt="ARC Illustration" /></p>
+
+<pre><code>ARC的一个基本原则: 只要某个对象被任一strong指针引用，那么它将不会被销毁。当对象没有被任何strong指针引用时，那么就将被销毁。
+</code></pre>
+
+<h2>默认行为</h2>
+
+<p>对象默认为声明为 strong 类型, ARC 确保对象在函数体内是不会被 dealloc。比如</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">takeLastNameFrom:</span><span class="p">(</span><span class="n">Person</span> <span class="o">*</span><span class="p">)</span><span class="nv">person</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">NSString</span> <span class="o">*</span><span class="n">oldLastname</span> <span class="o">=</span> <span class="p">[</span><span class="n">self</span> <span class="n">lastName</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">self</span> <span class="nl">setLastName:</span><span class="p">[</span><span class="n">person</span> <span class="n">lastName</span><span class="p">]];</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Lastname changed from %@ to %@&quot;</span><span class="p">,</span> <span class="n">oldLastname</span><span class="p">,</span> <span class="p">[</span><span class="n">self</span> <span class="n">lastName</span><span class="p">]);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>强制规则</h2>
+
+<ul>
+<li><p>你不能再调用 dealloc 或者实现、调用 retain, release, retainCount, autorelease, 同样@selector(retain), @selector(release)也是不允许的，
+当然你可以实现 dealloc 方法，来管理你的实例变量，或者你会调用 [systemClassInstance setDelegate:nil]等.定制的 dealloc 方法不需要写 [super dealloc],这个动作会默认调用。</p>
+
+<p>你仍然可以用 CFRetain, CFRelease 和相关Core Foundation方法。 如果要管理这类对象可以参考：(Managing Toll-Free Bridging 管理自由桥接)</p></li>
+<li><p>你不能使用 NSAllocateObject 或 NSDeallocateObject</p>
+
+<p>创建对象用 alloc</p></li>
+<li><p>你不能在 C 结构体中使用对象指针</p>
+
+<p>因此下面代码是不可用的</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">selectedImage</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">UIImage</span> <span class="o">*</span><span class="n">disabledImage</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span> <span class="n">ButtonImages</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>  建议是用 OC类来管理它们</p>
+
+<ul>
+<li><p>不能随意在 id 与 void * 之间随意转换</p>
+
+<p>编译器同样是无法管理 void * 这类 Core Foundation类型的东东，都要用 Managing Toll-Free Bridging 进行生命同期的管理。</p></li>
+<li><p>你不能再使用 NSAutoreleasePool 对象</p>
+
+<p>ARC 提供了性能更好的 @autoreleasepool block 替换原来这类使用方式。</p></li>
+<li><p>你不能使用内存区</p>
+
+<p>你不需要再使用 NSZone 等这类对象，因为现在Objective-C运行时已经忽略NSZone了，所以没必要再使用NSZone了。</p></li>
+<li><p>你不能使用 new 开头的属性名，但你可以手动指定 getter 方法名</p>
+
+<p>例如:</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 非法:</span>
+</span><span class='line'><span class="k">@property</span> <span class="n">NSString</span> <span class="o">*</span><span class="n">newTitle</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// OK:</span>
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">getter</span><span class="o">=</span><span class="n">theNewTitle</span><span class="p">)</span> <span class="n">NSString</span> <span class="o">*</span><span class="n">newTitle</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<h1>ARC 新的对象生命周期声明</h1>
+
+<ul>
+<li>属性</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">// 用 strong 代替 retain, @property(retain) MyClass *myObject;</span>
+</span><span class='line'><span class="k">@property</span><span class="p">(</span><span class="n">strong</span><span class="p">)</span> <span class="n">MyClass</span> <span class="o">*</span><span class="n">myObject</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// 用 weak 代替 assign &quot;@property(assign) MyClass *myObject;&quot;</span>
+</span><span class='line'><span class="c1">// 实例变量被释放后，会自动赋予 nil 指针，省得我们自己在手动赋nil操作。</span>
+</span><span class='line'><span class="k">@property</span><span class="p">(</span><span class="n">weak</span><span class="p">)</span> <span class="n">MyClass</span> <span class="o">*</span><span class="n">myObject</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 ARC 中 strong 将是默认的类型.</p>
+
+<ul>
+<li>变量</li>
+</ul>
+
+
+<p>变量同样有以下几种管理生命周期的声明</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">__strong</span>
+</span><span class='line'><span class="n">__weak</span>
+</span><span class='line'><span class="n">__unsafe_unretained</span>
+</span><span class='line'><span class="n">__autoreleasing</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>__unsafe_unretained 类似原来的 assign</p>
+
+<p>所以你可以这样声明这些对象</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyClass</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">myWeakReference</span><span class="p">;</span>
+</span><span class='line'><span class="n">MyClass</span> <span class="o">*</span> <span class="n">__unsafe_unretained</span> <span class="n">myUnsafeReference</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>需要注意的是 __weak 变量在栈中的情况，例如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSString</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">string</span> <span class="o">=</span> <span class="p">[[</span><span class="n">NSString</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithFormat:</span><span class="s">@&quot;First Name: %@&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">self</span> <span class="n">firstName</span><span class="p">]];</span>
+</span><span class='line'><span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;string: %@&quot;</span><span class="p">,</span> <span class="n">string</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>尽管 string 被实例化，但由于 string 声明为 weak 类型，它没有 strong 这个引用，所以他在赋值后立即就被释放了,在Log它时，它已经被释放了。</p>
+
+<h2>同样你也要注意对象值传递. 比如下面的代码</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">;</span>
+</span><span class='line'><span class="kt">BOOL</span> <span class="n">OK</span> <span class="o">=</span> <span class="p">[</span><span class="n">myObject</span> <span class="nl">performOperationWithError:</span><span class="o">&amp;</span><span class="n">error</span><span class="p">];</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">OK</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Report the error.</span>
+</span><span class='line'>    <span class="c1">// ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实际上这个代码是这样隐示声明的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSError</span> <span class="o">*</span> <span class="n">__strong</span> <span class="n">e</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而函数是这样被声明了的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">performOperationWithError:</span><span class="p">(</span><span class="n">NSError</span> <span class="o">*</span> <span class="n">__autoreleasing</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以最后编译的结果就是:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSError</span> <span class="o">*</span> <span class="n">__strong</span> <span class="n">error</span><span class="p">;</span>
+</span><span class='line'><span class="n">NSError</span> <span class="o">*</span> <span class="n">__autoreleasing</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">error</span><span class="p">;</span>
+</span><span class='line'><span class="kt">BOOL</span> <span class="n">OK</span> <span class="o">=</span> <span class="p">[</span><span class="n">myObject</span> <span class="nl">performOperationWithError:</span><span class="o">&amp;</span><span class="n">tmp</span><span class="p">];</span>
+</span><span class='line'><span class="n">error</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">OK</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Report the error.</span>
+</span><span class='line'>    <span class="c1">// ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当本地变量声明(<strong>strong *error)和函数的参数((NSError * </strong>autoreleasing <em>)error)不匹配的时候，编译器会创建一个临时变量。当你获得一个<strong>strong变量的地址时，你可以初始化一个id </strong>strong </em>的指针来声明 ，这样你就可以获得指针的原型，或者你可以声明一个变量为 __autoreleasing。</p>
+
+<h1>避免循环引用</h1>
+
+<p>你可以使用生命周期修饰符来避免Strong引用周期。例如，当你制作了一组父子结构的对象，而且父类要引用子类，则会出现Strong引用周期；反之，当 你将一个父类指向子类为strong引用，子类指向父类为weak引用，就可以避免出现Strong引用周期。当对象包含block objects时，这样的情况会变的更加隐性。</p>
+
+<p>在手动内存管理模式下， <code>__block id x</code>; x不会被 retaining
+在ARC模式下，<code>__block id x</code> , 默认被retaining</p>
+
+<p>为了使手动内存管理模式代码可以在ARC模式下正常工作， 你可以用 <code>__unsafe_unretained</code> 来修饰 <code>__block id</code> x;。就和&#8221;<strong>unsafe_unretained&#8221;字面上的意思一样, 不过,这样一个non-retained变量是危险的(因为它会变成一个野指 针) 会带来不良后果。有两种更好一点的方法来处理，一是使用</strong>weak (当你不需要支持iOS 4或OS X v10.6), 二是设__block值为nil，结束他的生命周期。</p>
+
+<ul>
+<li>这是MRC时代处理 __block 里对象释放问题:</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span><span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>   <span class="p">[</span><span class="n">myController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="p">[</span><span class="n">self</span> <span class="nl">presentViewController:</span><span class="n">myController</span> <span class="nl">animated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>   <span class="p">[</span><span class="n">myController</span> <span class="n">release</span><span class="p">];</span>
+</span><span class='line'><span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你可以使用 __block修饰符然后设置myController的值为nil 替代上面的方式:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span> <span class="n">__block</span> <span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">myController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">myController</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>无伦哪种形式，你都可以使用一个 weak 引用对象避免循环引用:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span><span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">MyViewController</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">weakMyViewController</span> <span class="o">=</span> <span class="n">myController</span><span class="p">;</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">weakMyViewController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在某个时候这个对象，如果放在异步执行时，对象可能已经被释放，所以需要一个 strong 的对象把它 hold 住。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">MyViewController</span> <span class="o">*</span><span class="n">myController</span> <span class="o">=</span> <span class="p">[[</span><span class="n">MyViewController</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="err">…</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="n">MyViewController</span> <span class="o">*</span> <span class="n">__weak</span> <span class="n">weakMyController</span> <span class="o">=</span> <span class="n">myController</span><span class="p">;</span>
+</span><span class='line'><span class="n">myController</span><span class="p">.</span><span class="n">completionHandler</span> <span class="o">=</span>  <span class="o">^</span><span class="p">(</span><span class="n">NSInteger</span> <span class="n">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">MyViewController</span> <span class="o">*</span><span class="n">strongMyController</span> <span class="o">=</span> <span class="n">weakMyController</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">strongMyController</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// ...</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">strongMyController</span> <span class="nl">dismissViewControllerAnimated:</span><span class="n">YES</span> <span class="nl">completion:</span><span class="nb">nil</span><span class="p">];</span>
+</span><span class='line'>        <span class="c1">// ...</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// Probably nothing...</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>栈里的变量初始化即为 nil</h2>
+
+<p>使用ARC后， strong, weak, autoreleasing 栈里的变量默认初始为nil</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">myMethod</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">NSString</span> <span class="o">*</span><span class="n">name</span><span class="p">;</span> <span class="c1">// 这里 name 已经被赋予了nil指针， 所以下面的代码不会出错。</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;name: %@&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>修改编译的Flag 打开和关闭 ARC</h2>
+
+<p>如果有遇到第三方插件，或有一些文件你不想用 ARC 来控制，可以在 Build Phases > Compile Sources > 某个文件上 > Compiler Flags: -fno-objc-arc</p>
+
+<p>相互如果想在部分文件中用到 arc 则标记上: -fobjc-arc</p>
+
+<p><img src="/assets/compiler_flags_arc.png" alt="Compiler flags for arc" /></p>
+
+<h2>Managing Toll-Free Bridging</h2>
+
+<p>由于ARC不能管理Core Foundation Object的生命周期，所以在Core Foundation和ARC之间，我们需要使用到<strong>bridge,</strong>bridge_retained和__bridge_transfer三个转换关键字。</p>
+
+<p>__bridge只做类型转换，但是不修改对象（内存）管理权；</p>
+
+<p>__bridge_retained（也可以使用CFBridgingRetain）将Objective-C的对象转换为Core Foundation的对象，同时将对象（内存）的管理权交给我们，后续需要使用CFRelease或者相关方法来释放对象；</p>
+
+<p>__bridge_transfer（也可以使用CFBridgingRelease）将Core Foundation的对象转换为Objective-C的对象，同时将对象（内存）的管理权交给ARC。</p>
+
+<h2>使用weak property声明Outlet</h2>
+
+<p>在被ARC处理过的iOS和OS X中，声明的outlets将会趋于统一。</p>
+
+<p>一般来说outlets变量被修饰为weak，但是如果outlets变量的所有者是nib文件中的top-level对象(或者是storyboard scene)时，应被修饰为strong。</p>
+
+<p>详细参考Resource Programming Guide中的“Nib Files”。</p>
+
+<p>当我们使用 Interface Builder 生成Outlet对象的时候，一般都是作为 subview 来使用的。比如 UIViewController 的view。所以说Outlet的持有者就是superview对象，即有“父子”关系。我们知道，当对象间有“父子”关系时，需要使用弱参照，以避免“循环参照”。</p>
+
+<p>ViewController 本身是不会作为Outlet的所有者的，所以使用weak property声明。</p>
+
+<p><img src="/assets/arc_outlet_weak_property.png" alt="arc outlet weak property" /></p>
+
+<p>简化viewDidUnload</p>
+
+<p>Outlet都使用weak property声明的时候，还有一个好处，就是简化viewDidUnload的处理。</p>
+
+<p>iOS在系统内存不足的时候，UIViewController会将没有表示的所有view做unload处理，即调用viewDidUnload接口。</p>
+
+<p>所以，如果是强参照的情况下，需要释放所有权，</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">strong</span><span class="p">)</span> <span class="kt">IBOutlet</span> <span class="n">UILabel</span> <span class="o">*</span><span class="n">label</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">viewDidUnload</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">self</span><span class="p">.</span><span class="n">label</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span> <span class="c1">// 取消强参照，释放所有权</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">super</span> <span class="n">viewDidUnload</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果没有 self.label = nil 的处理，那么 UIViewController 将不会释放 label 的所有权；结果，系统是调用了unload，但是subview对象始终留在内存中。随着界面上控件的增多，内存泄露会越来越大。</p>
+
+<p>如果使用的是weak property声明的话，会是怎样的呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">nonatomic</span><span class="p">,</span> <span class="n">weak</span><span class="p">)</span> <span class="kt">IBOutlet</span> <span class="n">UILabel</span> <span class="o">*</span><span class="n">label</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时，系统在unload时，由于label没有被强参照，更加ARC的规则，这时，label的对象即被释放。并在释放的同时，变量自动指向nil。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">viewDidUnload</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// 这里什么也不用管</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">super</span> <span class="n">viewDidUnload</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其实，如果我们的viewDidUnload只是用来释放Outlet用的话，那么该函数也可以不被重载的。</p>
+
+<p>什么时候要用strong property</p>
+
+<p>由上我们也可以看到，并不是所有的Outlet都用weak来声明都是正确的；当使用Interface Builder生成的第一层的view或者windows被作为Outlet来使用的话，那么不是不能声明为weak property的。（比如，Storyboard的各个scene）</p>
+
+<h1>转化原MRC项目到ARC</h1>
+
+<ul>
+<li><p>用Xcode自带工具转换MRC项目到ARC:
+Edit > Refactor > Convert to Objective-C ARC)</p>
+
+<p><img src="/assets/tool_for_convert_to_oc_arc.png" alt="Provides a tool that convert to ARC" /></p>
+
+<p>在这个选项下，还有一个 Convert to Modern Objective-C Syntax.. 转化成更现代的写法, 有兴趣的可以试试。:)</p>
+
+<p>在转化的过程中，编译器会先对代码进行检查，如果遇到错误警告，可以根据提示进行处理后，再进行转化 (如果你要无视这些错误可以在Preferences 里设定 Continue building after errors)</p></li>
+<li><p>将项目用ARC方式编译
+Build Settings -> LLVM compiler 将 Objective-C Automatic Reference Counting 设置为 Yes</p>
+
+<p><img src="/assets/convert_to_arc_in_llvm.png" alt="Convert to ARC in LLVM" /></p></li>
+</ul>
+
+
+<h1>常见问题</h1>
+
+<ul>
+<li><p>通常遇到的错误有这样一些：</p>
+
+<p><code>Receiver type ‘X’ for instance message is a forward declaration</code></p>
+
+<p>这往往是引用的问题。ARC要求完整的前向引用，也就是说在MRC时代可能只需要在.h中申明@class就可以，但是在ARC中如果调用某个子类中未覆盖的父类中的方法的话，必须对父类.h引用，否则无法编译。</p>
+
+<p><code>Switch case is in protected scope</code></p>
+
+<p>现在switch语句必须加上{}了，ARC需要知道局部变量的作用域，加上{}后switch语法更加严格，否则遇到没有break的分支的话内存管理会出现问题。</p>
+
+<p><code>A name is referenced outside the NSAutoreleasePool scope that it was declared in</code></p>
+
+<p>这是由于写了自己的 autoreleasepool，而在转换时在原来的pool中申明的变量在新的@autoreleasepool中作用域将被局限。解决方法是把变量申明拿到pool的申请之前。</p>
+
+<p><code>ARC forbids Objective-C objects in structs or unions</code></p></li>
+<li><p>ARC 需要你指定 super init 的结果到 self
+ [super init]; // 这将是无效的</p>
+
+<p> 推荐用</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>   <span class="n">self</span> <span class="o">=</span> <span class="p">[</span><span class="n">super</span> <span class="n">init</span><span class="p">];</span>
+</span><span class='line'>   <span class="k">if</span> <span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实例变量会变成 strong 类型</p>
+
+<p>在用 ARC 之前, thing 这个变量是一个 weak 类型</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MyClass</span> : <span class="nc">Superclass</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">id</span> <span class="n">thing</span><span class="p">;</span> <span class="c1">// Weak reference.</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">@</span><span class="n">implementation</span> <span class="n">MyClass</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">thing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">setThing:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">newThing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">thing</span> <span class="o">=</span> <span class="n">newThing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用 ARC 后，thing 变量实际上是默认用了 strong 类型，所以如果你要想继续使用 weak 类型，必须显示声明</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MyClass</span> : <span class="nc">Superclass</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">id</span> <span class="n">__weak</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">@</span><span class="n">implementation</span> <span class="n">MyClass</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">thing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">setThing:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">newThing</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">thing</span> <span class="o">=</span> <span class="n">newThing</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MyClass</span> : <span class="nc">Superclass</span>
+</span><span class='line'><span class="k">@property</span> <span class="p">(</span><span class="n">weak</span><span class="p">)</span> <span class="kt">id</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">MyClass</span>
+</span><span class='line'><span class="k">@synthesize</span> <span class="n">thing</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>首先，我们需要转变一下观念, 对于在.h中申明的实例变量：</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">MainViewController</span> : <span class="nc">UIViewController</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">NSOperationQueue</span> <span class="o">*</span><span class="n">queue</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们不妨仔细考虑一下，为什么在interface里出现了实例变量的申明？通常来说，实例变量只是在类的实例中被使用，而你所写的类的使用者并没有太多必要了解你的类中有哪些实例变量。而对于绝大部分的实例变量，应该都是protected或者private的，对它们的操作只应该用setter和getter，而这正是property所要做的工作。可以说，将实例变量写在头文件中是一种遗留的陋习。更好的写实例变量名字的地方应当与类实现关系更为密切，为了隐藏细节，我们应该考虑将它们写在@implementation里。好消息是，在LLVM3.0中，不论是否开启ARC，编译器是支持将实例变量写到实现文件中的。甚至如果没有特殊需要又用了property，我们都不应该写无意义的实例变量申明，因为在@synthesize中进行绑定时，我们就可以设置变量名字了，这样写的话可以让代码更加简洁。</p>
+
+<p>在这里我们对实例变量申明移到.m里中。修改后的.h是这样的，十分简洁</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@implementation</span> <span class="nc">MainViewController</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">NSOperationQueue</span> <span class="o">*</span><span class="n">queue</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的写法让代码相当灵活，而且不得不承认.m确实是这些实例变量的应该在的地方</p>
+
+<p>参考资料:</p>
+
+<ul>
+<li><a href="http://developer.apple.com/library/ios/#documentation/Cocoa/Conceptual/MemoryMgmt/Articles/MemoryMgmt.html#//apple_ref/doc/uid/10000011i">About Memory Management</a></li>
+</ul>
+
+
+<p><img src="http://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/MemoryMgmt/Art/memory_management_2x.png" alt="memory managment" /></p>
+
+<ul>
+<li><p><a href="http://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html">Transitioning to ARC</a></p></li>
+<li><p><a href="http://clang.llvm.org/docs/AutomaticReferenceCounting.html#blocks">Objective-C Automatic Reference Counting</a></p></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">square</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-24T13:15:00+08:00" pubdate data-updated="true">Apr 24<span>th</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/04/12/block-based-design/" title="Previous Post: 模块化设计-iOS团队协作开发 v1.0">&laquo; 模块化设计-iOS团队协作开发 v1.0</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/05/21/wireless-app-distribution/" title="Next Post: 无线分发应用--通过Safari安装App">无线分发应用--通过Safari安装App &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>like objc & ruby</p>
+  <p><a href=mailto:square.zhao.wei@gmail.com?subject=from_myblog>square.zhao.wei@gmail.com</a></p>
+  <p>weibo: <a href="http://weibo.com/squarezw">squarezw</a></p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/10/18/how-to-debug-our-app/">调试我们的iOS APP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/05/21/wireless-app-distribution/">无线分发应用--通过Safari安装App</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/04/24/arc-with-memory-management/">ARC 与内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/04/12/block-based-design/">模块化设计-iOS团队协作开发 v1.0</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+<section>
+  <h1>Friends</h1>
+  <ul>
+    <li>
+       <a href="http://zgm-is.me/">zgm</a>
+    </li>
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - square -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'doruby';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://doruby.com/blog/2013/04/24/arc-with-memory-management/';
+        var disqus_url = 'http://doruby.com/blog/2013/04/24/arc-with-memory-management/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F7c6e5af96ed07f54d5e932214d5b63a2' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+</body>
+</html>
