@@ -136,10 +136,11 @@
 </ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[self.view recursiveDescription]  # 递归打印view
-</span><span class='line'>image lookup --address 0xffffff</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">view</span> <span class="n">recursiveDescription</span><span class="p">]</span>  <span class="err">#</span> <span class="err">递归打印</span><span class="n">view</span>
+</span><span class='line'><span class="n">image</span> <span class="n">lookup</span> <span class="o">--</span><span class="n">address</span> <span class="mh">0xffffff</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>  更多调试命令可以参考上面的 LLDB 介绍，或用 help 命令显示帮助。</p>
@@ -274,17 +275,18 @@
 </ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  *** First throw call stack:
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="o">***</span> <span class="n">First</span> <span class="n">throw</span> <span class="n">call</span> <span class="nl">stack:</span>
 </span><span class='line'>
-</span><span class='line'>  (0x2f3a022 0x30cbcd6 0x2ee2a48 0x2ee29b9 0x2f392da 0x9cfd3 0x7f460 0x80a6e 0x103ba29 0x2f05855 0x2f05778 ...)</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  <span class="p">(</span><span class="mh">0x2f3a022</span> <span class="mh">0x30cbcd6</span> <span class="mh">0x2ee2a48</span> <span class="mh">0x2ee29b9</span> <span class="mh">0x2f392da</span> <span class="mh">0x9cfd3</span> <span class="mh">0x7f460</span> <span class="mh">0x80a6e</span> <span class="mh">0x103ba29</span> <span class="mh">0x2f05855</span> <span class="mh">0x2f05778</span> <span class="p">...)</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>  如何查看这些信息背后的真实情况，在main.m代码中加入以写部分：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -300,22 +302,23 @@
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  #ifdef DEBUGvoid eHandler(NSException*);
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">  #ifdef DEBUGvoid eHandler(NSException*);</span>
 </span><span class='line'>
-</span><span class='line'>  void eHandler(NSException*exception){    
-</span><span class='line'>    NSLog(@"%@", exception);    
-</span><span class='line'>    NSLog(@"%@",[exception callStackSymbols]);
-</span><span class='line'>  }
+</span><span class='line'>  <span class="kt">void</span> <span class="n">eHandler</span><span class="p">(</span><span class="n">NSException</span><span class="o">*</span><span class="n">exception</span><span class="p">){</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,</span> <span class="n">exception</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,[</span><span class="n">exception</span> <span class="n">callStackSymbols</span><span class="p">]);</span>
+</span><span class='line'>  <span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>  #endif
+</span><span class='line'><span class="cp">  #endif</span>
 </span><span class='line'>
 </span><span class='line'>
-</span><span class='line'>  int main(int argc,char*argv[]){
-</span><span class='line'>    #ifdef DEBUG    
-</span><span class='line'>    NSSetUncaughtExceptionHandler(&eHandler);
-</span><span class='line'>    #endif
-</span><span class='line'>    ...rest of your main function here...
-</span><span class='line'>  }</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span><span class="o">*</span><span class="n">argv</span><span class="p">[]){</span>
+</span><span class='line'><span class="cp">    #ifdef DEBUG    </span>
+</span><span class='line'>    <span class="n">NSSetUncaughtExceptionHandler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">eHandler</span><span class="p">);</span>
+</span><span class='line'><span class="cp">    #endif</span>
+</span><span class='line'>    <span class="p">...</span><span class="n">rest</span> <span class="n">of</span> <span class="n">your</span> <span class="n">main</span> <span class="n">function</span> <span class="n">here</span><span class="p">...</span>
+</span><span class='line'>  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <hr />
@@ -344,10 +347,11 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
 </ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>dwarfdump --uuid yourapp.app/yourapp
-</span><span class='line'>dwarfdump --uuid yourapp.app.dSYM</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">dwarfdump</span> <span class="o">--</span><span class="n">uuid</span> <span class="n">yourapp</span><span class="p">.</span><span class="n">app</span><span class="o">/</span><span class="n">yourapp</span>
+</span><span class='line'><span class="n">dwarfdump</span> <span class="o">--</span><span class="n">uuid</span> <span class="n">yourapp</span><span class="p">.</span><span class="n">app</span><span class="p">.</span><span class="n">dSYM</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <ul>
@@ -446,22 +450,24 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 </ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>NSLog(@"This is message from NSLog");
-</span><span class='line'>fprintf(stderr, "This is message from stderr\n");</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;This is message from NSLog&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;This is message from stderr</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>  如果是通过Xcode调试加载运行这个程序，那么</p>
 
 <p>  在xcode的console中打印如下：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  2011-03-12 18:52:26.948 Test86[7891:307] This is message from NSLog```
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="mi">2011</span><span class="o">-</span><span class="mo">03</span><span class="o">-</span><span class="mi">12</span> <span class="mi">18</span><span class="o">:</span><span class="mi">52</span><span class="o">:</span><span class="mf">26.948</span> <span class="n">Test86</span><span class="p">[</span><span class="mi">7891</span><span class="o">:</span><span class="mi">307</span><span class="p">]</span> <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">NSLog</span><span class="err">```</span>
 </span><span class='line'>
-</span><span class='line'>  This is message from stderr</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">stderr</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>  在iPhone的system log中（通过Organizer的console查看）只打印</p>
@@ -471,10 +477,11 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 
 <p>  但是如果在iPhone上通过手指触摸启动这个程序，在iPhone的system log中会打印：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  Sat Mar 12 18:53:38 unknown Test86[7900] &lt;Warning&gt;: This is message from NSLog
-</span><span class='line'>  Sat Mar 12 18:53:38 unknown UIKitApplication:com.yourcompany.Test86[0x7d60][7900] &lt;Notice&gt;: This is message from stderr</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="n">Sat</span> <span class="n">Mar</span> <span class="mi">12</span> <span class="mi">18</span><span class="o">:</span><span class="mi">53</span><span class="o">:</span><span class="mi">38</span> <span class="n">unknown</span> <span class="n">Test86</span><span class="p">[</span><span class="mi">7900</span><span class="p">]</span> <span class="o">&lt;</span><span class="n">Warning</span><span class="o">&gt;:</span> <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">NSLog</span>
+</span><span class='line'>  <span class="n">Sat</span> <span class="n">Mar</span> <span class="mi">12</span> <span class="mi">18</span><span class="o">:</span><span class="mi">53</span><span class="o">:</span><span class="mi">38</span> <span class="n">unknown</span> <span class="nl">UIKitApplication:</span><span class="n">com</span><span class="p">.</span><span class="n">yourcompany</span><span class="p">.</span><span class="n">Test86</span><span class="p">[</span><span class="mh">0x7d60</span><span class="p">][</span><span class="mi">7900</span><span class="p">]</span> <span class="o">&lt;</span><span class="n">Notice</span><span class="o">&gt;:</span> <span class="n">This</span> <span class="n">is</span> <span class="n">message</span> <span class="n">from</span> <span class="n">stderr</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>  说明确实stderr在user 自己launch的app中被重定向为system log，而且log的等级为Notice；NSLog的等级为Warning。</p>
@@ -486,7 +493,7 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 </ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -494,14 +501,15 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Level 0 – “Emergency”
-</span><span class='line'>Level 1 – “Alert”
-</span><span class='line'>Level 2 – “Critical”
-</span><span class='line'>Level 3 – “Error”
-</span><span class='line'>Level 4 – “Warning”
-</span><span class='line'>Level 5 – “Notice”
-</span><span class='line'>Level 6 – “Info”
-</span><span class='line'>Level 7 – “Debug”</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">Level</span> <span class="mi">0</span> <span class="err">–</span> <span class="err">“</span><span class="n">Emergency</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">1</span> <span class="err">–</span> <span class="err">“</span><span class="n">Alert</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">2</span> <span class="err">–</span> <span class="err">“</span><span class="n">Critical</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">3</span> <span class="err">–</span> <span class="err">“</span><span class="n">Error</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">4</span> <span class="err">–</span> <span class="err">“</span><span class="n">Warning</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">5</span> <span class="err">–</span> <span class="err">“</span><span class="n">Notice</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">6</span> <span class="err">–</span> <span class="err">“</span><span class="n">Info</span><span class="err">”</span>
+</span><span class='line'><span class="n">Level</span> <span class="mi">7</span> <span class="err">–</span> <span class="err">“</span><span class="n">Debug</span><span class="err">”</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>  在创建好日志之后，通过调用API发送日志信息给一个叫做syslogd的守护进程，然后syslogd根据自己的配置文件（位于/private/etc/syslog.conf, mac系统的在：/etc/asl.conf )</p>
