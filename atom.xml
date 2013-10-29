@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2013-10-29T12:34:02+08:00</updated>
+  <updated>2013-10-29T12:37:59+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -642,9 +642,6 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
 <p>很多人担心内存管理不受自己控制，其实这是对于ARC机制了解不足从而不自信，所导致的对新事物的恐惧。</p>
 
 <p>下面我们从几个方面来详细介绍ARC到底如何实现，如何使用，它的好处，注意事项等。</p>
-
-<!-- more -->
-
 
 <h2>需要的基本环境:</h2>
 
