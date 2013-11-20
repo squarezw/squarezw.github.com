@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2013-10-29T14:21:43+08:00</updated>
+  <updated>2013-11-20T15:16:08+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -12,6 +12,439 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Xcode自动生成Objective C SDK文档]]></title>
+    <link href="http://doruby.com/blog/2013/11/23/objective-c-api-documentation-generator/"/>
+    <updated>2013-11-23T14:26:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/11/23/objective-c-api-documentation-generator</id>
+    <content type="html"><![CDATA[<p>有的时候我们经常需要查看描述项目的API文档，传统的做法是手动写Markdown或Doc文档之类，现在我们可以利用标准的代码注释方法，然后用<a href="http://gentlebytes.com/appledoc/">appledoc</a>工具来自动生成和苹果官方SDK文档类似的HTMl文档。</p>
+
+<h2>配置</h2>
+
+<p>下载源码并编译:</p>
+
+<pre><code>git clone git://github.com/tomaz/appledoc.git 
+cd appledoc
+</code></pre>
+
+<p>用它自带的脚本编译</p>
+
+<pre><code>sudo sh install-appledoc.sh (如果你需要默认HTML模板可以添加 '-t default'， 默认是存放在 ~/.appledoc下的)
+</code></pre>
+
+<p>你也可以自定义 bin 目录, 和模板存放地</p>
+
+<pre><code>mkdir ~/Library/Application\ Support/appledoc (创建Doc存放目录)
+sudo sh install-appledoc.sh -b /usr/bin -t ~/Library/Application\ Support/appledoc
+</code></pre>
+
+<h2>集成进Xcode5 脚本</h2>
+
+<ol>
+<li>在你的Xcode项目中新建Target</li>
+<li>选择 Other > Aggregate, 建议取名为Documentation</li>
+<li>选择 Documentation > Edit Scheme</li>
+<li>选择 Build > Post-actions</li>
+<li>点+ > New Run Script Action</li>
+<li>Provide build settings from 选择 Documentation</li>
+<li>下面粘贴进脚本</li>
+</ol>
+
+
+<p><em>company 等内容修改为你自己的内容</em></p>
+
+<p><em>outputPath 为输出html路径</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#appledoc Xcode script 
+</span><span class='line'># Start constants 
+</span><span class='line'>company="SQUARE"; 
+</span><span class='line'>companyID="com.doruby";
+</span><span class='line'>companyURL="http://doruby.com";
+</span><span class='line'>target="iphoneos";
+</span><span class='line'>#target="macosx";
+</span><span class='line'>outputPath="~/help";
+</span><span class='line'># End constants
+</span><span class='line'>/usr/local/bin/appledoc \
+</span><span class='line'>--project-name "${PROJECT_NAME}" \
+</span><span class='line'>--project-company "${company}" \
+</span><span class='line'>--company-id "${companyID}" \
+</span><span class='line'>--docset-atom-filename "${company}.atom" \
+</span><span class='line'>--docset-feed-url "${companyURL}/${company}/%DOCSETATOMFILENAME" \
+</span><span class='line'>--docset-package-url "${companyURL}/${company}/%DOCSETPACKAGEFILENAME" \
+</span><span class='line'>--docset-fallback-url "${companyURL}/${company}" \
+</span><span class='line'>--output "${outputPath}" \
+</span><span class='line'>--publish-docset \
+</span><span class='line'>--docset-platform-family "${target}" \
+</span><span class='line'>--logformat xcode \
+</span><span class='line'>--keep-intermediate-files \
+</span><span class='line'>--no-repeat-first-par \
+</span><span class='line'>--no-warn-invalid-crossref \
+</span><span class='line'>--exit-threshold 2 \
+</span><span class='line'>"${PROJECT_DIR}"</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="http://doruby.com/assets/objectivec_api_documentation.png" alt="objective-c api auto generator config" /></p>
+
+<p>Build 后即可在 <code>~/help</code> 文件夹下看到多出了几个html 文件，那就是完整的项目API文档。</p>
+
+<h1>关于注释的写法</h1>
+
+<!-- more -->
+
+
+<h1>Appledoc comments formatting style</h1>
+
+<p>Appledoc extracts documentation from specially formatted comments, giving you freedom to choose which comments will be parsed and which not. To make porting old documentation simpler, it allows you to use either doxygen or headerdoc style comments.</p>
+
+<h2>Multiple line comments:</h2>
+
+<p>Appledoc only handles multiple line comments if they start with slash and double star and end with standard star and slash:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cm">/** Some comment */</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lines may optionally start with whitespace and a single star char and appledoc will ignore the prefix star, like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cm">/** Star prefixed comment</span>
+</span><span class='line'><span class="cm"> * spreading over multiple </span>
+</span><span class='line'><span class="cm"> * lines</span>
+</span><span class='line'><span class="cm"> */</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To make transition from headerdoc a bit simpler, appledoc also accepts headerdoc style multiline comments:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cm">/*! Comment */</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Single line comments:</h2>
+
+<p>appledoc also handles single line comments that start with three slashes. Two or more single line comments in consequtive lines are grouped together into a single comment:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">/// Single line comment spreading</span>
+</span><span class='line'><span class="c1">/// over multiple lines</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Laying out comments</h1>
+
+<p>Appledoc has been designed to keep comments in source code as readable as possible. In order to achieve this, it uses <a href="http://daringfireball.net/projects/markdown/">Markdown</a>-like syntax. Specifically, it uses <a href="http://www.pell.portland.or.us/~orc/Code/discount/">Discount</a> library for processing Markdown, which supports a set of extensions to original Markdown; check the <a href="http://www.pell.portland.or.us/~orc/Code/discount/">link</a> for more details. Furthermore, it extracts as much information from the comment surrounding context which allows you to focus on documenting entities, instead of polluting comments with tagging which class or method a comment belongs to.</p>
+
+<h2>Paragraphs</h2>
+
+<p>Paragraphs are simply any number of consecutive rows of text separated by one or more empty (or tab and space only) lines:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">First</span> <span class="n">paragraph</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Second</span> <span class="n">paragraph</span> <span class="n">with</span> <span class="n">lot</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">of</span>
+</span><span class='line'><span class="n">text</span> <span class="n">spread</span> <span class="n">accross</span> <span class="n">multiple</span> <span class="n">lines</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">And</span> <span class="n">another</span> <span class="n">paragraph</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The first paragraph of the comment is automatically used as short description and remaining as long description or discussion. You can change default behavior via command line switches.</p>
+
+<h2>Unordered lists</h2>
+
+<p>Unordered lists use -, + or * markers in front of each item:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="nf">First</span> <span class="n">item</span><span class="p">.</span>
+</span><span class='line'><span class="o">-</span> <span class="n">Second</span> <span class="n">item</span> <span class="n">with</span> <span class="n">lot</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">of</span> <span class="n">text</span>
+</span><span class='line'>  <span class="n">spread</span> <span class="n">across</span> <span class="n">multiple</span> <span class="n">lines</span><span class="p">.</span>
+</span><span class='line'><span class="o">-</span> <span class="n">Third</span> <span class="n">item</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The list must be delimited from surrounding paragraphs by empty lines at the top and bottom. You can nest lists by prefixing them with tabs or spaces like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">-</span> <span class="nf">Item</span> <span class="mi">1</span>
+</span><span class='line'>  <span class="o">-</span> <span class="n">Item</span> <span class="mf">1.1</span>
+</span><span class='line'>  <span class="o">-</span> <span class="n">Item</span> <span class="mf">1.2</span>
+</span><span class='line'>  <span class="o">-</span> <span class="n">Item</span> <span class="mf">1.2.1</span>
+</span><span class='line'>  <span class="o">-</span> <span class="n">Item</span> <span class="mf">1.3</span>
+</span><span class='line'><span class="o">-</span> <span class="n">Item</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that you can combine ordered and unordered lists when nesting.</p>
+
+<h2>Ordered lists</h2>
+
+<p>Ordered lists use a number followed by a dot as a marker in front of each item:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="mf">1.</span> <span class="n">First</span> <span class="n">item</span>
+</span><span class='line'><span class="mf">2.</span> <span class="n">Second</span> <span class="n">item</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Numbers don&#8217;t need to be consequtive, you can even use the same number for all items; appledoc will simply number the items by their order. All rules for unordered lists also apply for ordered lists: separation with empty lines, nesting etc., so it won&#8217;t be repeated here.</p>
+
+<h2>Examples and code blocks</h2>
+
+<p>If you want to mark a block of text as an example, simply prefix each line with a tab or 4 (or more) spaces. Appledoc will automatically convert consequtive blocks of prefixed lines into a single code block. Similar to lists and other paragraph blocks, example section needs to be delimited from preceding and following paragraph with an empty line:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">Normal</span> <span class="n">paragraph</span> <span class="n">text</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="n">First</span> <span class="n">line</span> <span class="n">of</span> <span class="n">example</span>
+</span><span class='line'>  <span class="n">Second</span> <span class="n">line</span> <span class="n">of</span> <span class="n">example</span>
+</span><span class='line'>  
+</span><span class='line'><span class="n">Next</span> <span class="n">paragraph</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Important information blocks</h2>
+
+<p>You mark a paragraph as important by prefixing it&#8217;s first line with @warning directive. For example, this is how you can achieve effect Apple uses for these blocks:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="err">@</span><span class="n">warning</span> <span class="o">*</span><span class="nl">Important:</span><span class="o">*</span> <span class="n">Sending</span> <span class="n">this</span> <span class="n">message</span> <span class="n">before</span> <span class="err">`</span><span class="nl">readValues:fromFile:</span><span class="err">`</span> <span class="n">will</span> <span class="n">result</span> <span class="k">in</span> <span class="n">unpredicted</span> <span class="n">results</span><span class="p">,</span> <span class="n">most</span> <span class="n">likely</span> <span class="n">as</span> <span class="n">runtime</span> <span class="n">exception</span><span class="o">!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Important</em>: All text after <code>@warning</code> directive, up to next <code>"@"</code> directive will become part of the block - currently it&#8217;s not possible to terminate warning block manually and continue with normal paragraphs! This allows you nesting lists and multiple paragraphs, but may come as surprise when not expected. Therefore it&#8217;s recommended to use warning blocks at the end of &#8220;normal&#8221; paragraphs (and as any &#8220;@&#8221; directive will end previous block or paragraph, you can put them above method directives). Something to keep in mind!</p>
+
+<h2>Bug information blocks</h2>
+
+<p>If you&#8217;d like to make a paragraph even more emphasized than a <code>@warning</code>, you can use <code>@bug</code> directive. It works just like <code>@warning</code>, so see description there for details. Not so much used, but may come handy under certain circumstances.</p>
+
+<h1>Formatting text</h1>
+
+<p>Appledoc has been designed to keep comments in source code as readable as possible. In order to achieve this, it uses <a href="http://daringfireball.net/projects/markdown/">Markdown</a>-like syntax. Specifically, it uses <a href="http://www.pell.portland.or.us/~orc/Code/discount/">Discount</a> library for processing Markdown, which supports a set of extensions to original Markdown; check the <a href="http://www.pell.portland.or.us/~orc/Code/discount/">link</a> for more details. Furthermore, it extracts as much information from the comment surrounding context which allows you to focus on documenting entities, instead of polluting comments with tagging which class or method a comment belongs to.</p>
+
+<h2>Emphasis</h2>
+
+<p>Text can be emphasized with the following syntax:</p>
+
+<ul>
+<li><p>Text wrapped within stars (*text*) becomes strong: <em>text</em>.</p></li>
+<li><p>Text wrapped within underscodes (_text_) becomes emphasized: <em>text</em>.</p></li>
+</ul>
+
+
+<p>You can include the marker itself in the middle of the text, so this *some * text* is converted to: <em>some * text</em>. You can nest strong and emphasized formatting directives, so _*text*_ or *_text_* becomes emphasized strong text like this: <em><em>text</em></em>.</p>
+
+<p>Note: you can also use standard Markdown formatting: **text** or __text__ for <strong>bold</strong> and ***text*** or ___text___ for <strong><em>emphasized strong</em></strong>.</p>
+
+<h2>Code spans</h2>
+
+<p>As you&#8217;re documenting source code, chance is you might want to format text as code. Any text wrapped within backtick quotes (`text`) is converted into <code>code span</code>. Note that you can&#8217;t nest emphasis within code spans!</p>
+
+<h2>Headers and the rest</h2>
+
+<p>Appledoc supports full Markdown, therefore you can include headers, line breaks, block quotes, horizontal rules etc. However, there&#8217;s rarely a need for many of these features and using them may result in odd looking documentation. If you need any of these, go experiment and see if you like results or not.</p>
+
+<h1>Links and cross references</h1>
+
+<p>You can easily link to any other documented entity or URL. Note that there are command line options that change how links are parsed, examples below assume you&#8217;re using default settings.</p>
+
+<h2>Links to web pages and other URLs</h2>
+
+<p>Any valid URL address starting with <code>http://</code>, <code>https://</code>, <code>ftp://</code>, <code>file://</code> or <code>mailto:</code> is automatically converted to a link in generated HTML.</p>
+
+<h2>Links to classes, categories and protocols</h2>
+
+<p>Any word that matches known class, category or protocol name is automatically converted to cross reference link to that object. Assuming complete documentation contains class GBClass, it&#8217;s extension GBClass(), category NSError(GBError) and protocol GBProtocol, the following text will automatically convert text:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">This</span> <span class="n">text</span> <span class="n">contains</span> <span class="n">links</span> <span class="nl">to:</span> <span class="n">class</span> <span class="n">GBClass</span><span class="p">,</span> <span class="n">it</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">extension</span> <span class="n">GBClass</span><span class="p">(),</span>
+</span><span class='line'><span class="n">category</span> <span class="n">NSError</span><span class="p">(</span><span class="n">GBError</span><span class="p">)</span> <span class="n">and</span> <span class="n">protocol</span> <span class="n">GBProtocol</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>into something like:</p>
+
+<p>This text contains links to: class <a href="http://">GBClass</a>, it&#8217;s extension <a href="http://">GBClass()</a>, category <a href="http://">NSError(GBError)</a> and protocol <a href="http://">GBProtocol</a>.</p>
+
+<h2>Links to local members</h2>
+
+<p>Any word that matches method or property selector name of &#8220;current&#8221; class, category or protocol is automatically converted to cross reference link to that member. Assuming current object contains method runWithValue:afterDelay: and property value, the following text:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">This</span> <span class="n">text</span> <span class="n">contains</span> <span class="n">links</span> <span class="nl">to:</span>
+</span><span class='line'><span class="n">method</span> <span class="nl">runWithValue:afterDelay:</span> <span class="n">and</span>
+</span><span class='line'><span class="n">property</span> <span class="n">value</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>will automatically convert to something like:</p>
+
+<p>This text contains links to: method <a href="http://">runWithValue:afterDelay:</a> and property <a href="http://">value</a>.</p>
+
+<h2>Links to remote members</h2>
+
+<p>Creating cross reference links to members of other classes, categories or protocols requires a bit more effort as you need to state the class and the method, but still follows the same principle. Assuming complete documentation contains class GBClass which has method runWithValue:afterDelay: and property value, the following text:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">This</span> <span class="n">text</span> <span class="n">contains</span> <span class="n">links</span> <span class="nl">to:</span>
+</span><span class='line'><span class="n">method</span> <span class="p">[</span><span class="n">GBClass</span> <span class="nl">runWithValue:</span><span class="n">afterDelay</span><span class="p">]</span> <span class="n">and</span>
+</span><span class='line'><span class="n">property</span> <span class="p">[</span><span class="n">GBClass</span> <span class="n">value</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>will convert to something like:</p>
+
+<p>This text contains links to: method [<a href="http://">GBClass runWithValue:afterDelay:</a>] and property [<a href="http://">GBClass value</a>]</p>
+
+<h2>Custom link descriptions</h2>
+
+<p>As appledoc parses Markdown links for known objects, you can take advantage of link descriptions and even reference-type links to add that fine touch to generated documentation. For example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">For</span> <span class="n">more</span> <span class="n">info</span> <span class="n">check</span> <span class="p">[</span><span class="n">this</span> <span class="n">page</span><span class="p">](</span><span class="nl">http:</span><span class="c1">//gentlebytes.com), </span>
+</span><span class='line'><span class="n">also</span> <span class="n">take</span> <span class="n">a</span> <span class="n">look</span> <span class="n">at</span> <span class="p">[</span><span class="n">this</span> <span class="n">class</span><span class="p">](</span><span class="n">GBClass</span><span class="p">)</span>
+</span><span class='line'><span class="n">and</span> <span class="p">[</span><span class="n">this</span> <span class="n">method</span><span class="p">]([</span><span class="n">GBClass</span> <span class="nl">method:</span><span class="p">]).</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">For</span> <span class="n">referring</span> <span class="n">to</span> <span class="n">common</span> <span class="n">object</span> <span class="n">multiple</span> <span class="n">times</span><span class="p">,</span>
+</span><span class='line'><span class="n">use</span> <span class="n">this</span> <span class="p">[</span><span class="n">class</span><span class="p">][</span><span class="mi">1</span><span class="p">].</span> <span class="n">And</span> <span class="p">[</span><span class="n">repeat</span> <span class="n">again</span><span class="p">][</span><span class="mi">1</span><span class="p">].</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">GBClass</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As long as <code>GBClass</code> and <code>[GBClass method:]</code> are recognized as valid cross references, the above example is converted to something like:</p>
+
+<p>For more info check <a href="http://">this page</a>, also take a look at <a href="http://">this class</a> and <a href="http://">this method</a>.</p>
+
+<p>For referring to common object multiple times, use this <a href="http://">class</a>. And <a href="http://">repeat again</a>.</p>
+
+<h1>Methods and properties description</h1>
+
+<p>For methods and properties you may want to document their parameters, results or exceptions they may raise. To do that, there are a number of &#8220;@&#8221; directives you can use:</p>
+
+<ul>
+<li><code>@return &lt;description&gt;</code>: Provides the description of method or property result. Alternatives: <code>@returns</code> or <code>@result</code>.</li>
+<li><code>@param &lt;name&gt; &lt;description&gt;</code>: Provides the description of method parameter with the given name. You need to provide description for each parameter or appledoc will log a warning (you can suppress these warnings through command line switch).</li>
+<li><code>@exception &lt;name&gt; &lt;description&gt;</code>: Provides the description of an exception that may be raised by a method. The name of the exception is given with the first parameter and description with the second.</li>
+</ul>
+
+
+<p><em>Note</em>: All of the text following the directive, up to the next directive is considered as part of the directive description. This allows you to include multiple paragraphs, unordered or ordered lists, warnings, bugs and the rest, but may come as surprise if not expected! To compensate, it&#8217;s recommended to enter all these directives at the bottom of the comment text. In fact, because of this, all directives are formatted so that you enter the description as the last directive &#8220;parameter&#8221;.</p>
+
+<h1>Various bits and pieces</h1>
+
+<ul>
+<li><p><strong>Generating related links</strong>: <code>@see &lt;name&gt;</code> or <code>@sa &lt;name&gt;</code>. Although you can provide cross reference links anywhere within the paragraph text, as described above, you need to use @see directives to provide related context links for documentation sets. The name should follow cross reference guidelines described above.</p>
+
+<p><strong>Note</strong>: Methods and properties keep all cross references in generated HTML, regardless of the referenced object. But when <code>@see</code> is used within class, category or protocol comment, only cross references to template documents are preserved and converted to companion guide links (generated in the table below the title). All other cross references - i.e. to other objects or members - are ignored. Oh, and remember, you can use nice descriptions using Markdown syntax, for example:</p>
+
+<p><code>
+@see [String Programming Guide](document1).
+</code></p></li>
+<li><p><strong>Grouping methods</strong>: <code>@name &lt;title&gt;</code>. All methods and properties declared after @name directive will be stored into a group with the given title. These groups are then extracted as tasks in generated HTML. Important: @name must be specified in it&#8217;s own separate comment preceeding the first group method or property comment for which the task is specified! So this would work:</p>
+
+<p>&#8220;`objc
+/<em>* @name Section title </em>/</p>
+
+<p>/<em>* Method description </em>/</p>
+
+<ul>
+<li>(void)someMethod;
+&#8220;`</li>
+</ul>
+
+
+<p>and this wouldn&#8217;t:</p>
+
+<p>&#8220;`objc
+/** @name Section title</p>
+
+<p>Method description */</p>
+
+<ul>
+<li>(void)someMethod;
+&#8220;`</li>
+</ul>
+</li>
+<li><p><strong>Comment delimiters</strong>: Any comment may optionally include delimiter lines. A delimiter line is any combination of 3 or more chars from the following set: <code>"!@#$%^&amp;*()_=``~,&lt;.&gt;/?;:'\\"-"</code>. Such lines are ignored, so given a comment like this:</p>
+
+<p><code>objc
+/// ---------------------------------
+/// comment
+/// ---------------------------------
+</code></p>
+
+<p>will automatically strip first and last line. This is mostly used for making <code>@name</code> sections more stand out.</p></li>
+<li><p><strong>Directives prefix</strong>: Although all directives in examples above use &#8220;@&#8221; sign as a prefix, you can actually use any non-whitespace char instead, for example <code>\param</code>, <code>$param</code>, <code>%param</code> and so on&#8230;</p></li>
+</ul>
+
+
+<p>And last, but not least, as appledoc uses standard Markdown rules, take a look at <a href="http://daringfireball.net/projects/markdown/">Markdown documentation</a> and <a href="http://www.pell.portland.or.us/~orc/Code/discount/">Discount library </a>for more details and possibilities. This doc is only meant as a quick guide to general formatting and all appledoc specifics, not as comprehensive documentation of all supported Markdown features. Also take a look at <a href="https://github.com/tomaz/appledoc/">appledoc source code</a> for examples of how it fits together.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[调试我们的iOS APP]]></title>

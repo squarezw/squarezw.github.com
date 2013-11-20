@@ -9,7 +9,7 @@
   <meta name="author" content="square">
 
   
-  <meta name="description" content="很早就想写一篇关于调试和测试的文章了。一直没写的原因一方面是工作太忙，一方面是现在新的调试工具和调试方法层出不穷，不知道什么时候现在用的方法就会过时，所以一直犹豫是不是等到有一个系统的方案出来在总结一下，不过我觉得还是现在先把能想到和用到写下来，让大家一起探讨。 注： &hellip;">
+  <meta name="description" content="有的时候我们经常需要查看描述项目的API文档，传统的做法是手动写Markdown或Doc文档之类，现在我们可以利用标准的代码注释方法，然后用appledoc工具来自动生成和苹果官方SDK文档类似的HTMl文档。 配置 下载源码并编译: git clone git://github.com/ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +76,145 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/23/objective-c-api-documentation-generator/">Xcode自动生成Objective C SDK文档</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-23T14:26:00+08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+        
+         | <a href="/blog/2013/11/23/objective-c-api-documentation-generator/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>有的时候我们经常需要查看描述项目的API文档，传统的做法是手动写Markdown或Doc文档之类，现在我们可以利用标准的代码注释方法，然后用<a href="http://gentlebytes.com/appledoc/">appledoc</a>工具来自动生成和苹果官方SDK文档类似的HTMl文档。</p>
+
+<h2>配置</h2>
+
+<p>下载源码并编译:</p>
+
+<pre><code>git clone git://github.com/tomaz/appledoc.git 
+cd appledoc
+</code></pre>
+
+<p>用它自带的脚本编译</p>
+
+<pre><code>sudo sh install-appledoc.sh (如果你需要默认HTML模板可以添加 '-t default'， 默认是存放在 ~/.appledoc下的)
+</code></pre>
+
+<p>你也可以自定义 bin 目录, 和模板存放地</p>
+
+<pre><code>mkdir ~/Library/Application\ Support/appledoc (创建Doc存放目录)
+sudo sh install-appledoc.sh -b /usr/bin -t ~/Library/Application\ Support/appledoc
+</code></pre>
+
+<h2>集成进Xcode5 脚本</h2>
+
+<ol>
+<li>在你的Xcode项目中新建Target</li>
+<li>选择 Other > Aggregate, 建议取名为Documentation</li>
+<li>选择 Documentation > Edit Scheme</li>
+<li>选择 Build > Post-actions</li>
+<li>点+ > New Run Script Action</li>
+<li>Provide build settings from 选择 Documentation</li>
+<li>下面粘贴进脚本</li>
+</ol>
+
+
+<p><em>company 等内容修改为你自己的内容</em></p>
+
+<p><em>outputPath 为输出html路径</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#appledoc Xcode script 
+</span><span class='line'># Start constants 
+</span><span class='line'>company="SQUARE"; 
+</span><span class='line'>companyID="com.doruby";
+</span><span class='line'>companyURL="http://doruby.com";
+</span><span class='line'>target="iphoneos";
+</span><span class='line'>#target="macosx";
+</span><span class='line'>outputPath="~/help";
+</span><span class='line'># End constants
+</span><span class='line'>/usr/local/bin/appledoc \
+</span><span class='line'>--project-name "${PROJECT_NAME}" \
+</span><span class='line'>--project-company "${company}" \
+</span><span class='line'>--company-id "${companyID}" \
+</span><span class='line'>--docset-atom-filename "${company}.atom" \
+</span><span class='line'>--docset-feed-url "${companyURL}/${company}/%DOCSETATOMFILENAME" \
+</span><span class='line'>--docset-package-url "${companyURL}/${company}/%DOCSETPACKAGEFILENAME" \
+</span><span class='line'>--docset-fallback-url "${companyURL}/${company}" \
+</span><span class='line'>--output "${outputPath}" \
+</span><span class='line'>--publish-docset \
+</span><span class='line'>--docset-platform-family "${target}" \
+</span><span class='line'>--logformat xcode \
+</span><span class='line'>--keep-intermediate-files \
+</span><span class='line'>--no-repeat-first-par \
+</span><span class='line'>--no-warn-invalid-crossref \
+</span><span class='line'>--exit-threshold 2 \
+</span><span class='line'>"${PROJECT_DIR}"</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="/assets/objectivec_api_documentation.png" alt="objective-c api auto generator config" /></p>
+
+<p>Build 后即可在 <code>~/help</code> 文件夹下看到多出了几个html 文件，那就是完整的项目API文档。</p>
+
+<h1>关于注释的写法</h1>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/11/23/objective-c-api-documentation-generator/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -1039,6 +1178,10 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/11/23/objective-c-api-documentation-generator/">Xcode自动生成Objective C SDK文档</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/10/18/how-to-debug-our-app/">调试我们的iOS APP</a>
       </li>
     
@@ -1052,10 +1195,6 @@ If you run a program from within Xcode, you can see its stderr output in Xcode�
     
       <li class="post">
         <a href="/blog/2013/04/24/arc-with-memory-management/">ARC 与内存管理</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/04/12/block-based-design/">模块化设计-iOS团队协作开发 v1.0</a>
       </li>
     
   </ul>
