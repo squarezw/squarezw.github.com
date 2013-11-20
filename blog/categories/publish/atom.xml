@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Publish | square's blog]]></title>
+  <link href="http://doruby.com/blog/categories/publish/atom.xml" rel="self"/>
+  <link href="http://doruby.com/"/>
+  <updated>2013-11-20T16:32:06+08:00</updated>
+  <id>http://doruby.com/</id>
+  <author>
+    <name><![CDATA[square]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[无线分发应用--通过Safari安装App]]></title>
+    <link href="http://doruby.com/blog/2013/05/21/wireless-app-distribution/"/>
+    <updated>2013-05-21T16:03:00+08:00</updated>
+    <id>http://doruby.com/blog/2013/05/21/wireless-app-distribution</id>
+    <content type="html"><![CDATA[<p>iOS 支持以无线方式安装企业级应用程序，这可让您在不使用 iTunes 的情况下将内部软件分发给用户。</p>
+
+<h2>简单几步：</h2>
+
+<ol>
+<li><p>用户需要将设备的<a href="http://www.innerfence.com/howto/find-iphone-unique-device-identifier-udid">UDID</a>加到 Apple Developer Center 中心的设备里，并更新 .mobileprovision文件</p></li>
+<li><p>Scheme 里将 Archive 的 Build Configuration 换成 Debug 模式</p></li>
+<li><p>Archive 后从 Organizer 找到app文件，生成 ipa 文件</p></li>
+<li><p>生成 plist 文件，将它与 ipa 文件放到服务器上，并可通过网址访问并可下载</p></li>
+<li><p>做一个网页供大家访问后点键接跳转下载此plist, 如果生成将网址生成一个二维码，就更方便了。</p>
+
+<p>比如:</p></li>
+</ol>
+
+
+<p>``` objc
+<a href="itms-services://?action=download-manifest&url=http://example.com/manifest.plist">Install App</a></p>
+
+<p>```</p>
+
+<h2>plist 文件模板:</h2>
+
+<!-- more -->
+
+
+<ul>
+<li>注: {}里的内容是要替换的</li>
+</ul>
+
+
+<p>```objc
+&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict></p>
+
+<pre><code>&lt;key&gt;items&lt;/key&gt;
+&lt;array&gt;
+    &lt;dict&gt;
+        &lt;key&gt;assets&lt;/key&gt;
+        &lt;array&gt;
+            &lt;dict&gt;
+                &lt;key&gt;kind&lt;/key&gt;
+                &lt;string&gt;software-package&lt;/string&gt;
+                &lt;key&gt;url&lt;/key&gt;
+                &lt;string&gt;{你的域名http://doruby.com/xxx.ipa}&lt;/string&gt;
+            &lt;/dict&gt;
+        &lt;/array&gt;
+        &lt;key&gt;metadata&lt;/key&gt;
+        &lt;dict&gt;
+            &lt;key&gt;bundle-identifier&lt;/key&gt;
+            &lt;string&gt;{你的bundle identifier}&lt;/string&gt;
+            &lt;key&gt;bundle-version&lt;/key&gt;
+            &lt;string&gt;1.0&lt;/string&gt;
+            &lt;key&gt;kind&lt;/key&gt;
+            &lt;string&gt;software&lt;/string&gt;
+            &lt;key&gt;title&lt;/key&gt;
+            &lt;string&gt;{App名称}&lt;/string&gt;
+        &lt;/dict&gt;
+    &lt;/dict&gt;
+&lt;/array&gt;
+</code></pre>
+
+<p></dict>
+</plist></p>
+
+<p>```</p>
+
+<h2>网页模板</h2>
+
+<ul>
+<li>注: {}里的内容是要替换的</li>
+</ul>
+
+
+<p>```objc
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=320, height=460, user-scalable=no,
+initial-scale=1.0" />
+<title>Install Dev App</title>
+</head></p>
+
+<br/><br/><br/>
+
+
+<p><body></p>
+
+<div align="center">
+<a href="itms-services://?action=download-manifest&url={http://doruby.com/xxx.plist}"  style="color:orange; font-size:24px">Install the App</a>
+</div>
+
+
+<p></body>
+</html>
+```</p>
+
+<h2>注意:</h2>
+
+<p>可能需要配置你的 Web 服务器以便正确地传输清单文件和应用程序文件。</p>
+
+<ul>
+<li>对于 OS X Server，将以下 MIME 类型添加到 Web 服务的“MIME Types”（MIME 类型）设置中：</li>
+</ul>
+
+
+<p>application/octet-stream ipa</p>
+
+<p>text/xml plist</p>
+
+<ul>
+<li>对于 IIS，使用 IIS Manager 在服务器的“属性”页面中添加 MIME 类型：</li>
+</ul>
+
+
+<p>.ipa application/octet-stream</p>
+
+<p>.plist text/xml</p>
+
+<h2>参考:</h2>
+
+<p><a href="http://help.apple.com/iosdeployment-apps/mac/1.1/#app43ad871e">wireless enterprise app distribution</a></p>
+
+<p><a href="http://thirteendaysaweek.com/2012/10/01/enterprise-deployment-of-ios-apps-with-monotouch/">enterprise deployment of ios apps</a></p>
+
+<p>example:</p>
+
+<p><a href="http://www.doruby.com/assets/food.html">my app</a></p>
+]]></content>
+  </entry>
+  
+</feed>
