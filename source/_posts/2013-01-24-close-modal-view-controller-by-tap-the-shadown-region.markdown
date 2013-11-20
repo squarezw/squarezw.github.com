@@ -3,7 +3,7 @@ layout: post
 title: "点击阴影区关闭打开的Modal View Controller"
 date: 2013-01-24 11:03
 comments: true
-categories: 
+categories: Tips
 ---
 
 参考：[Close Modal View Controller by tap the shadow region](http://mengxiangping.com/?p=121)

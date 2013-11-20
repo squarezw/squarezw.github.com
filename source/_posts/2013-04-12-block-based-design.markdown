@@ -3,7 +3,7 @@ layout: post
 title: "模块化设计-iOS团队协作开发 v1.0"
 date: 2013-04-12 09:28
 comments: true
-categories: 
+categories: "ProjectManage"
 ---
 
 ## 现状

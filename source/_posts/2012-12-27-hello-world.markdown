@@ -3,7 +3,7 @@ layout: post
 title: "强大的日志分析工具 -- NSLogger"
 date: 2012-12-27 16:43
 comments: true
-categories: 
+categories: Plugins
 ---
 源码：[https://github.com/fpillet/NSLogger](https://github.com/fpillet/NSLogger)
 

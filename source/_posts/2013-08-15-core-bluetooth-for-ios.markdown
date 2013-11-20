@@ -3,7 +3,7 @@ layout: post
 title: "iOS 上的蓝牙框架 - Core Bluetooth for iOS [译]"
 date: 2013-08-15 09:52
 comments: true
-categories: 
+categories: CocoaFramework
 tags: core bluetooth
 ---
 
@@ -37,6 +37,8 @@ Core Bluetooth API 基于BLE4.0规范。这个框架涵盖了BLE标准的所有�
 你可以在[developer bluetooth](http://developer.bluetooth.org)这里找到标准服务与特性的列表。
 
 比如：
+
+<!-- more -->
 
 ```objc
 

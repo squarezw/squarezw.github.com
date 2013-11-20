@@ -3,7 +3,7 @@ layout: post
 title: "ARC 与内存管理"
 date: 2013-04-24 13:15
 comments: true
-categories: 
+categories: CocoaFramework
 ---
 
 ARC: Automatic Reference Counting (自动引用计数)

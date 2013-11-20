@@ -3,7 +3,7 @@ layout: post
 title: "在Xcode里,为项目定义不同的环境配置"
 date: 2013-02-28 09:30
 comments: true
-categories: 
+categories: Xcode
 ---
 
 

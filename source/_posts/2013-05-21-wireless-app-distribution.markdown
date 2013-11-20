@@ -3,7 +3,7 @@ layout: post
 title: "无线分发应用--通过Safari安装App"
 date: 2013-05-21 16:03
 comments: true
-categories: 
+categories: Publish
 ---
 
 iOS 支持以无线方式安装企业级应用程序，这可让您在不使用 iTunes 的情况下将内部软件分发给用户。
