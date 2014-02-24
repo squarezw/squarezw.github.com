@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2014-02-24T18:29:18+08:00</updated>
+  <updated>2014-02-24T18:33:22+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -80,6 +80,9 @@
 <p>此类是Core Graphics框架关于path的一个封装。使用此类可以定义简单的形状，如椭圆或者矩形，或者有多个直线和曲线段组成的形状。</p>
 
 <p>它还提供了添加二次贝塞尔曲线和三次贝塞尔曲线的支持。</p>
+
+<!-- more -->
+
 
 <ul>
 <li><h2><a href="https://developer.apple.com/library/ios/documentation/uikit/reference/UIColor_Class/Reference/Reference.html">UIColor</a></h2></li>
