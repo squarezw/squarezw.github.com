@@ -116,3 +116,21 @@ text/xml plist
 example:
 
 [my app](http://www.doruby.com/assets/food.html)
+
+## 更新 (2014-3)
+
+iOS 7.1修改了manifest.plist文件的访问协议，之前可以通过http协议访问，在iOS 7.1之后必须使用https协议方式访问。
+
+比如之前的链接代码为：
+
+```
+itms-services://?action=download-manifest&url=http://doruby.com/manifest.plist
+```
+
+需要修改为：
+
+```
+itms-services://?action=download-manifest&url=https://doruby.com/manifest.plist
+```
+
+如果你没有放置或制作 SSL 证书的地方，可以将 plist 文件放到 [Dropbox](https://db.tt/2VPiCZkk) 上，然后得到文件的下载地址： https://www.dropbox.com/s/s3zl5vzxgvjtwfw/app.plist, 替换 `www.dropbox.com` 为 `dl.dropboxusercontent.com` 即可。
