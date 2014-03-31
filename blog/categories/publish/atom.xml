@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Publish | square's blog]]></title>
   <link href="http://doruby.com/blog/categories/publish/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2014-02-24T18:33:22+08:00</updated>
+  <updated>2014-03-31T16:20:24+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -148,6 +148,24 @@ initial-scale=1.0" />
 <p>example:</p>
 
 <p><a href="http://www.doruby.com/assets/food.html">my app</a></p>
+
+<h2>更新 (2014-3)</h2>
+
+<p>iOS 7.1修改了manifest.plist文件的访问协议，之前可以通过http协议访问，在iOS 7.1之后必须使用https协议方式访问。</p>
+
+<p>比如之前的链接代码为：</p>
+
+<p><code>
+itms-services://?action=download-manifest&amp;url=http://doruby.com/manifest.plist
+</code></p>
+
+<p>需要修改为：</p>
+
+<p><code>
+itms-services://?action=download-manifest&amp;url=https://doruby.com/manifest.plist
+</code></p>
+
+<p>如果你没有放置或制作 SSL 证书的地方，可以将 plist 文件放到 <a href="https://db.tt/2VPiCZkk">Dropbox</a> 上，然后得到文件的下载地址： https://www.dropbox.com/s/s3zl5vzxgvjtwfw/app.plist, 替换 <code>www.dropbox.com</code> 为 <code>dl.dropboxusercontent.com</code> 即可。</p>
 ]]></content>
   </entry>
   
