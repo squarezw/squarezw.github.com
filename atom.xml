@@ -4,7 +4,7 @@
   <title><![CDATA[square's blog]]></title>
   <link href="http://doruby.com/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
-  <updated>2014-03-31T16:31:33+08:00</updated>
+  <updated>2014-04-04T10:35:17+08:00</updated>
   <id>http://doruby.com/</id>
   <author>
     <name><![CDATA[square]]></name>
@@ -12,6 +12,29 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[智能的App Banner - Smart App Banners]]></title>
+    <link href="http://doruby.com/blog/2014/04/04/smart-app-banners/"/>
+    <updated>2014-04-04T09:50:00+08:00</updated>
+    <id>http://doruby.com/blog/2014/04/04/smart-app-banners</id>
+    <content type="html"><![CDATA[<p>Safari 在iOS6设备里有一个智能的App Banner特性，添加一行代码在你的网站里，如果用户在iPhone或iPad等iOS设备上，用Safari浏览器打开网站，他将在顶部看到如下的内容：</p>
+
+<p><img src="https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/Art/smartappbanner.png" alt="Smart App Banner" /></p>
+
+<p>这行代码就是：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;meta name="apple-itunes-app" content="app-id=myAppStoreID, affiliate-data=myAffiliateData, app-argument=myURL"&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>app-id 就是你的AppStore上的id 号，affiliate-data 与 app-argument 是可选的两个参数</p>
+
+<p>添加后，他会智能的判断你的手机上是否安装有此APP，如果有则为打开按钮，没有则出现一个AppStore下载链接。</p>
+
+<p><em>如果点过关闭显示[x]后，它将不再显示，除非你去设置中清除Safari Cookies</em></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[UIKit Class Hierarchy]]></title>

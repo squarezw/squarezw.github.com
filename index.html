@@ -9,7 +9,8 @@
   <meta name="author" content="square">
 
   
-  <meta name="description" content="是时候复习一下基础内容了，先从最常用到的 UIKit 开始吧。 UIKit reference introduction 先看看这个层级结构图吧： UIAcceleration: 加速计类: 加速度实为UIAcceleration对象实例，又被称为加速事件，它代表即时的三维空间上， &hellip;">
+  <meta name="description" content="Safari 在iOS6设备里有一个智能的App Banner特性，添加一行代码在你的网站里，如果用户在iPhone或iPad等iOS设备上，用Safari浏览器打开网站，他将在顶部看到如下的内容： 这行代码就是： 1
+&lt;meta name="apple-itunes-app" &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +77,58 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/04/04/smart-app-banners/">智能的App Banner - Smart App Banners</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-04T09:50:00+08:00" pubdate data-updated="true">Apr 4<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/04/04/smart-app-banners/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Safari 在iOS6设备里有一个智能的App Banner特性，添加一行代码在你的网站里，如果用户在iPhone或iPad等iOS设备上，用Safari浏览器打开网站，他将在顶部看到如下的内容：</p>
+
+<p><img src="https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/Art/smartappbanner.png" alt="Smart App Banner" /></p>
+
+<p>这行代码就是：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;meta name="apple-itunes-app" content="app-id=myAppStoreID, affiliate-data=myAffiliateData, app-argument=myURL"&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>app-id 就是你的AppStore上的id 号，affiliate-data 与 app-argument 是可选的两个参数</p>
+
+<p>添加后，他会智能的判断你的手机上是否安装有此APP，如果有则为打开按钮，没有则出现一个AppStore下载链接。</p>
+
+<p><em>如果点过关闭显示[x]后，它将不再显示，除非你去设置中清除Safari Cookies</em></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1030,65 +1083,9 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 &#8211; NSLogger</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-12-27T16:43:00+08:00" pubdate data-updated="true">Dec 27<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/12/27/hello-world/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
-
-<p><strong>特点</strong></p>
-
-<ul>
-<li>摆脱Xcode的小窗查看日志</li>
-<li>不用再将iPhone连接到电脑上才能看日志</li>
-<li>支持通过互联网传送日志</li>
-<li>可以输出图片的日志</li>
-<li>可自己定义日志等级</li>
-</ul>
-
-
-<p><img src="https://github.com/fpillet/NSLogger/raw/master/Screenshots/mainwindow.png" alt="nslogger mainwindow" /></p>
-
-<h2>安装</h2>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2012/12/27/hello-world/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -1119,6 +1116,10 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/04/04/smart-app-banners/">智能的App Banner - Smart App Banners</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/02/24/uikit-class-hierarchy/">UIKit Class Hierarchy</a>
@@ -1154,10 +1155,6 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
     
       <li class="post">
         <a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/12/27/hello-world/">强大的日志分析工具 &#8211; NSLogger</a>
       </li>
     
   </ul>

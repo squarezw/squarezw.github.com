@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: Integration - square's blog</title>
+  <title>智能的App Banner - Smart App Banners - square's blog</title>
   <meta name="author" content="square">
 
   
-  <meta name="description" content="Category: Integration">
+  <meta name="description" content="Safari 在iOS6设备里有一个智能的App Banner特性，添加一行代码在你的网站里，如果用户在iPhone或iPad等iOS设备上，用Safari浏览器打开网站，他将在顶部看到如下的内容： 这行代码就是： 1
+&lt;meta name="apple-itunes-app" &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://doruby.comblog/categories/integration/">
+  <link rel="canonical" href="http://doruby.com/blog/2014/04/04/smart-app-banners/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -75,36 +76,99 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: Integration</h1>
+    
+      <h1 class="entry-title">智能的App Banner - Smart App Banners</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-04T09:50:00+08:00" pubdate data-updated="true">Apr 4<span>th</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>Safari 在iOS6设备里有一个智能的App Banner特性，添加一行代码在你的网站里，如果用户在iPhone或iPad等iOS设备上，用Safari浏览器打开网站，他将在顶部看到如下的内容：</p>
 
-  
-  <h2>2013</h2>
+<p><img src="https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/Art/smartappbanner.png" alt="Smart App Banner" /></p>
 
-<article>
-  
-<h1><a href="/blog/2013/11/23/objective-c-api-documentation-generator/">Xcode自动生成Objective C SDK文档</a></h1>
-<time datetime="2013-11-23T14:26:00+08:00" pubdate><span class='month'>Nov</span> <span class='day'>23</span> <span class='year'>2013</span></time>
+<p>这行代码就是：</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/integration/'>Integration</a></span>
-</footer>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;meta name="apple-itunes-app" content="app-id=myAppStoreID, affiliate-data=myAffiliateData, app-argument=myURL"&gt;</span></code></pre></td></tr></table></div></figure>
 
 
-</article>
+<p>app-id 就是你的AppStore上的id 号，affiliate-data 与 app-argument 是可选的两个参数</p>
 
+<p>添加后，他会智能的判断你的手机上是否安装有此APP，如果有则为打开按钮，没有则出现一个AppStore下载链接。</p>
+
+<p><em>如果点过关闭显示[x]后，它将不再显示，除非你去设置中清除Safari Cookies</em></p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">square</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-04T09:50:00+08:00" pubdate data-updated="true">Apr 4<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/02/24/uikit-class-hierarchy/" title="Previous Post: UIKit Class Hierarchy">&laquo; UIKit Class Hierarchy</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -208,7 +272,10 @@
       var disqus_shortname = 'doruby';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://doruby.com/blog/2014/04/04/smart-app-banners/';
+        var disqus_url = 'http://doruby.com/blog/2014/04/04/smart-app-banners/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
