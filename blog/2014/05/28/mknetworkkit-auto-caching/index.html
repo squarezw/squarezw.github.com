@@ -5,15 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>强大的日志分析工具 -- NSLogger - square's blog</title>
+  <title>MKNetworkKit Auto Caching - square's blog</title>
   <meta name="author" content="square">
 
   
-  <meta name="description" content="源码：https://github.com/fpillet/NSLogger 特点 摆脱Xcode的小窗查看日志
-不用再将iPhone连接到电脑上才能看日志
-支持通过互联网传送日志
-可以输出图片的日志
-可自己定义日志等级 安装 NSLogger分为两部分，LoggerClient和NSLogger &hellip;">
+  <meta name="description" content="MKNetworkKit 网上已有不少介绍它的文章了，不过对于它提供的众多特性的实现机制，还是值得研究研究的。其中 Auto caching 是其中之一。 官方文档是这样写的： High performance background caching (based on HTTP 1.1 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -22,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://doruby.com/blog/2012/12/27/hello-world/">
+  <link rel="canonical" href="http://doruby.com/blog/2014/05/28/mknetworkkit-auto-caching/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -83,7 +79,7 @@
   
   <header>
     
-      <h1 class="entry-title">强大的日志分析工具 -- NSLogger</h1>
+      <h1 class="entry-title">MKNetworkKit Auto Caching</h1>
     
     
       <p class="meta">
@@ -99,7 +95,7 @@
   
 
 
-<time datetime="2012-12-27T16:43:00+08:00" pubdate data-updated="true">Dec 27<span>th</span>, 2012</time>
+<time datetime="2014-05-28T16:45:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2014</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -108,94 +104,33 @@
   </header>
 
 
-<div class="entry-content"><p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
+<div class="entry-content"><p>MKNetworkKit 网上已有不少介绍它的文章了，不过对于它提供的众多特性的实现机制，还是值得研究研究的。其中 Auto caching 是其中之一。</p>
 
-<p><strong>特点</strong></p>
+<p>官方文档是这样写的：</p>
+
+<h2>High performance background caching (based on HTTP 1.1 caching specs) built in</h2>
+
+<p>MKNetworkKit can automatically cache all your “GET” requests. When you make the same request again, MKNetworkKit calls your completion handler with the cached version of the response (if it’s available) almost immediately. It also makes a call to the remote server again. After the server data is fetched, your completion handler is called again with the new response data. This means, you don’t have to handle caching manually on your side. All you need to do is call one method</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[[MKNetworkEngine sharedEngine] useCache];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Optionally, you can override methods in your MKNetworkEngine subclass to customize your cache directory and in-memory cache cost.</p>
 
 <ul>
-<li>摆脱Xcode的小窗查看日志</li>
-<li>不用再将iPhone连接到电脑上才能看日志</li>
-<li>支持通过互联网传送日志</li>
-<li>可以输出图片的日志</li>
-<li>可自己定义日志等级</li>
+<li>它是基于 <a href="http://blog.toright.com/posts/3414/%E5%88%9D%E6%8E%A2-http-1-1-cache-%E6%A9%9F%E5%88%B6">HTTP1.1</a> 协议设计的Cache模式，刚好我们请求的后端服务也是基于这个协议，Cache-Control 用的是 <code>max-age=0, private, must-revalidate</code> , ETag 标记缓存</li>
 </ul>
 
 
-<p><img src="https://github.com/fpillet/NSLogger/raw/master/Screenshots/mainwindow.png" alt="nslogger mainwindow" /></p>
-
-<h2>安装</h2>
-
-<!-- more -->
-
-
-<p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
-LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
-
-<p>NSLogger 支持Pod方式安装,在你的APP中配置Podfile</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">pod</span> <span class="s1">&#39;NSLogger&#39;</span>
-</span><span class='line'><span class="n">pod</span> <span class="n">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
-
-<p><a href="/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
-
-<h2>使用</h2>
+<p> <img src="/assets/http1_1_cache_control.png" alt="HTTP1.1 Cache Control" /></p>
 
 <ul>
-<li><code>#import "LoggerClient.h"</code></li>
-<li>设置客户端网络监控的配置</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">LoggerSetViewerHost</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="n">CFStringRef</span><span class="p">)</span><span class="err">@“</span><span class="mf">127.0.0.1</span><span class="err">”</span><span class="p">,</span> <span class="p">(</span><span class="n">UInt32</span><span class="p">)</span><span class="mi">50000</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这一段代码可以加在main.m里</p>
-
-<ul>
-<li>除了基本的日志可以打印图片的日志</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">UIImage</span> <span class="o">*</span><span class="n">img</span> <span class="o">=</span> <span class="n">ONEDefaultImageWithName</span><span class="p">(</span><span class="s">@&quot;actionBar&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="n">CGSize</span> <span class="n">sz</span> <span class="o">=</span> <span class="n">img</span><span class="p">.</span><span class="n">size</span><span class="p">;</span>
-</span><span class='line'><span class="n">LogImageData</span><span class="p">(</span><span class="s">@&quot;image&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="n">sz</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">UIImagePNGRepresentation</span><span class="p">(</span><span class="n">img</span><span class="p">));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>为了不动原来的NSLog输出日志方式，可以重新定义NSLog</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">define</span> <span class="n">NSLog</span><span class="p">(...)</span> <span class="n">LogMessageF</span><span class="p">(</span> <span class="n">__FILE__</span><span class="p">,</span><span class="n">__LINE__</span><span class="p">,</span><span class="n">__FUNCTION__</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">__VA_ARGS__</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<ul>
-<li>打开NSLogger Viewer mac端，在Preferences的Network中，勾选 Listen for loggers on TCP port.端口默认</li>
-</ul>
-
-
-<p><strong>友情提示</strong></p>
-
-<ul>
-<li>如果Xcode编译后，没有发送数据到客户端，可以先 clean 一下。</li>
-<li>客户端建议用 TCP 协议连接,这样监听端口可以固定</li>
-<li>点窗口左下角的 f 可以看到对应的日志文件与行号</li>
+<li><p>如果你启用了 useCache ，它可以将所有的GET请求进行Cache，它根据请求的 url 来判断是否是同一个请求，然后调用缓存数据</p></li>
+<li><p>它在返回缓存数据时，同时也向服务器请求最新数据，如果有最新内容，会返回新的 ETag，然后MK会更新缓存中的ETag</p></li>
+<li><p>当 APP 退到后端时，缓存数据会持久化到Caches目录中</p></li>
+<li><p>它生成的缓存数据文件根据 unique Identifier 命名，放在 MKNetworkKitCache 目录中，生成规则可以查看 MKNetworkKitOperation uniqueIdentifier 方法。</p></li>
+<li><p>用 MKNetworkEngine emptyCache 实例方法清理缓存</p></li>
 </ul>
 
 </div>
@@ -220,12 +155,12 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
   
 
 
-<time datetime="2012-12-27T16:43:00+08:00" pubdate data-updated="true">Dec 27<span>th</span>, 2012</time>
+<time datetime="2014-05-28T16:45:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/plugins/'>Plugins</a>
+    <a class='category' href='/blog/categories/cache/'>Cache</a>, <a class='category' href='/blog/categories/mknetworkkit/'>MKNetworkKit</a>, <a class='category' href='/blog/categories/plugins/'>Plugins</a>, <a class='category' href='/blog/categories/third-libs/'>Third-libs</a>
   
 </span>
 
@@ -241,8 +176,8 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/blog/2014/04/04/smart-app-banners/" title="Previous Post: 智能的App Banner - Smart App Banners">&laquo; 智能的App Banner - Smart App Banners</a>
       
-        <a class="basic-alignment right" href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/" title="Next Post: 点击阴影区关闭打开的Modal View Controller">点击阴影区关闭打开的Modal View Controller &raquo;</a>
       
     </p>
   </footer>
@@ -360,8 +295,8 @@ LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志�
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://doruby.com/blog/2012/12/27/hello-world/';
-        var disqus_url = 'http://doruby.com/blog/2012/12/27/hello-world/';
+        var disqus_identifier = 'http://doruby.com/blog/2014/05/28/mknetworkkit-auto-caching/';
+        var disqus_url = 'http://doruby.com/blog/2014/05/28/mknetworkkit-auto-caching/';
         var disqus_script = 'embed.js';
       
     (function () {

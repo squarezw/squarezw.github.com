@@ -9,8 +9,7 @@
   <meta name="author" content="square">
 
   
-  <meta name="description" content="Safari 在iOS6设备里有一个智能的App Banner特性，添加一行代码在你的网站里，如果用户在iPhone或iPad等iOS设备上，用Safari浏览器打开网站，他将在顶部看到如下的内容： 这行代码就是： 1
-&lt;meta name="apple-itunes-app" &hellip;">
+  <meta name="description" content="MKNetworkKit 网上已有不少介绍它的文章了，不过对于它提供的众多特性的实现机制，还是值得研究研究的。其中 Auto caching 是其中之一。 官方文档是这样写的： High performance background caching (based on HTTP 1.1 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +76,72 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/28/mknetworkkit-auto-caching/">MKNetworkKit Auto Caching</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-28T16:45:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/05/28/mknetworkkit-auto-caching/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>MKNetworkKit 网上已有不少介绍它的文章了，不过对于它提供的众多特性的实现机制，还是值得研究研究的。其中 Auto caching 是其中之一。</p>
+
+<p>官方文档是这样写的：</p>
+
+<h2>High performance background caching (based on HTTP 1.1 caching specs) built in</h2>
+
+<p>MKNetworkKit can automatically cache all your “GET” requests. When you make the same request again, MKNetworkKit calls your completion handler with the cached version of the response (if it’s available) almost immediately. It also makes a call to the remote server again. After the server data is fetched, your completion handler is called again with the new response data. This means, you don’t have to handle caching manually on your side. All you need to do is call one method</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[[MKNetworkEngine sharedEngine] useCache];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Optionally, you can override methods in your MKNetworkEngine subclass to customize your cache directory and in-memory cache cost.</p>
+
+<ul>
+<li>它是基于 <a href="http://blog.toright.com/posts/3414/%E5%88%9D%E6%8E%A2-http-1-1-cache-%E6%A9%9F%E5%88%B6">HTTP1.1</a> 协议设计的Cache模式，刚好我们请求的后端服务也是基于这个协议，Cache-Control 用的是 <code>max-age=0, private, must-revalidate</code> , ETag 标记缓存</li>
+</ul>
+
+
+<p> <img src="/assets/http1_1_cache_control.png" alt="HTTP1.1 Cache Control" /></p>
+
+<ul>
+<li><p>如果你启用了 useCache ，它可以将所有的GET请求进行Cache，它根据请求的 url 来判断是否是同一个请求，然后调用缓存数据</p></li>
+<li><p>它在返回缓存数据时，同时也向服务器请求最新数据，如果有最新内容，会返回新的 ETag，然后MK会更新缓存中的ETag</p></li>
+<li><p>当 APP 退到后端时，缓存数据会持久化到Caches目录中</p></li>
+<li><p>它生成的缓存数据文件根据 unique Identifier 命名，放在 MKNetworkKitCache 目录中，生成规则可以查看 MKNetworkKitOperation uniqueIdentifier 方法。</p></li>
+<li><p>用 MKNetworkEngine emptyCache 实例方法清理缓存</p></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1014,75 +1079,6 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-24T11:03:00+08:00" pubdate data-updated="true">Jan 24<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>参考：<a href="http://mengxiangping.com/?p=121">Close Modal View Controller by tap the shadow region</a></p>
-
-<p>如何实现用户点击阴影区域，将当前出现的ModalViewController消失
-<img src="/assets/modalViewC.png" alt="modal view controller" /></p>
-
-<p>首先了解一下: UIApplicationMain</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="err">@</span><span class="n">autoreleasepool</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">UIApplicationMain</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="nb">nil</span><span class="p">,</span> <span class="n">NSStringFromClass</span><span class="p">([</span><span class="n">AppDelegate</span> <span class="n">class</span><span class="p">]));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>argc 与 argv 是标准的c main 函数参数。 第三个参数是接收事件响应的主要对象(principalClassName)，如果存在的话必须是继承UIApplication, 第四个 delegateClassName, 实现 UIApplicationDelegate 中的协议方法.</p>
-
-<p>任何时刻你点击屏幕，principalClassName都会监听, 并执行sendEvent方法, 所以我们只要拦截这个方法，然后做我们想做的事情就可以了。</p>
-
-<h2>实现</h2>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1102,12 +1098,15 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/cocoaframework/'>CocoaFramework (2)</a></li>
+    <li class='category'><a href='/blog/categories/cache/'>Cache (1)</a></li>
+<li class='category'><a href='/blog/categories/cocoaframework/'>CocoaFramework (2)</a></li>
 <li class='category'><a href='/blog/categories/debug/'>Debug (1)</a></li>
 <li class='category'><a href='/blog/categories/integration/'>Integration (1)</a></li>
-<li class='category'><a href='/blog/categories/plugins/'>Plugins (1)</a></li>
+<li class='category'><a href='/blog/categories/mknetworkkit/'>MKNetworkKit (1)</a></li>
+<li class='category'><a href='/blog/categories/plugins/'>Plugins (2)</a></li>
 <li class='category'><a href='/blog/categories/projectmanage/'>ProjectManage (1)</a></li>
 <li class='category'><a href='/blog/categories/publish/'>Publish (1)</a></li>
+<li class='category'><a href='/blog/categories/third-libs/'>Third-libs (1)</a></li>
 <li class='category'><a href='/blog/categories/tips/'>Tips (1)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>Xcode (1)</a></li>
 
@@ -1116,6 +1115,10 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/28/mknetworkkit-auto-caching/">MKNetworkKit Auto Caching</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/04/04/smart-app-banners/">智能的App Banner - Smart App Banners</a>
@@ -1151,10 +1154,6 @@ find /Applications/Xcode.app -name symbolicatecrash</p></blockquote>
     
       <li class="post">
         <a href="/blog/2013/02/28/env-of-project-on-xcode/">在Xcode里,为项目定义不同的环境配置</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/01/24/close-modal-view-controller-by-tap-the-shadown-region/">点击阴影区关闭打开的Modal View Controller</a>
       </li>
     
   </ul>

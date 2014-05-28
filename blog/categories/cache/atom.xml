@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Plugins | square's blog]]></title>
-  <link href="http://doruby.com/blog/categories/plugins/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Cache | square's blog]]></title>
+  <link href="http://doruby.com/blog/categories/cache/atom.xml" rel="self"/>
   <link href="http://doruby.com/"/>
   <updated>2014-05-28T17:12:33+08:00</updated>
   <id>http://doruby.com/</id>
@@ -45,77 +45,6 @@
 <li><p>当 APP 退到后端时，缓存数据会持久化到Caches目录中</p></li>
 <li><p>它生成的缓存数据文件根据 unique Identifier 命名，放在 MKNetworkKitCache 目录中，生成规则可以查看 MKNetworkKitOperation uniqueIdentifier 方法。</p></li>
 <li><p>用 MKNetworkEngine emptyCache 实例方法清理缓存</p></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[强大的日志分析工具 -- NSLogger]]></title>
-    <link href="http://doruby.com/blog/2012/12/27/hello-world/"/>
-    <updated>2012-12-27T16:43:00+08:00</updated>
-    <id>http://doruby.com/blog/2012/12/27/hello-world</id>
-    <content type="html"><![CDATA[<p>源码：<a href="https://github.com/fpillet/NSLogger">https://github.com/fpillet/NSLogger</a></p>
-
-<p><strong>特点</strong></p>
-
-<ul>
-<li>摆脱Xcode的小窗查看日志</li>
-<li>不用再将iPhone连接到电脑上才能看日志</li>
-<li>支持通过互联网传送日志</li>
-<li>可以输出图片的日志</li>
-<li>可自己定义日志等级</li>
-</ul>
-
-
-<p><img src="https://github.com/fpillet/NSLogger/raw/master/Screenshots/mainwindow.png" alt="nslogger mainwindow" /></p>
-
-<h2>安装</h2>
-
-<!-- more -->
-
-
-<p>NSLogger分为两部分，LoggerClient和NSLogger Viewer，
-LoggerClient是置入你APP的客户端，NSLogger Viewer是一个mac端日志分析器，NSLogger的日志可以通过网络传输到这个日志分析器中。</p>
-
-<p>NSLogger 支持Pod方式安装,在你的APP中配置Podfile
-<code>ruby
-pod 'NSLogger'
-pod install
-</code>
-<em>如果不支持Pod，可以直接将LoggerClient文件放入你的APP下.</em></p>
-
-<p><a href="/assets/NSLoggerViewer.zip">NSLogger Viewer</a> - <em>这是编译好的日志监控客户端 NSLogger Viewer</em></p>
-
-<h2>使用</h2>
-
-<ul>
-<li><code>#import "LoggerClient.h"</code></li>
-<li><p>设置客户端网络监控的配置
-<code>objc
-LoggerSetViewerHost(NULL, (CFStringRef)@“127.0.0.1”, (UInt32)50000);
-</code>
-这一段代码可以加在main.m里</p></li>
-<li><p>除了基本的日志可以打印图片的日志
-<code>objc
-UIImage *img = ONEDefaultImageWithName(@"actionBar");
-CGSize sz = img.size;
-LogImageData(@"image", 0, sz.width, sz.height, UIImagePNGRepresentation(img));
-</code></p></li>
-<li><p>为了不动原来的NSLog输出日志方式，可以重新定义NSLog
-<code>objc
-define NSLog(...) LogMessageF( __FILE__,__LINE__,__FUNCTION__, NULL, 0, __VA_ARGS__)
-</code></p></li>
-<li><p>打开NSLogger Viewer mac端，在Preferences的Network中，勾选 Listen for loggers on TCP port.端口默认</p></li>
-</ul>
-
-
-<p><strong>友情提示</strong></p>
-
-<ul>
-<li>如果Xcode编译后，没有发送数据到客户端，可以先 clean 一下。</li>
-<li>客户端建议用 TCP 协议连接,这样监听端口可以固定</li>
-<li>点窗口左下角的 f 可以看到对应的日志文件与行号</li>
 </ul>
 
 ]]></content>
