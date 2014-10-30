@@ -54,39 +54,39 @@ BreakPoint 其中有几种设定类型，其中有：
 
 1. Symbolic Breakpoint 
 
-我们可以添加指定的方法为断点。比如添加一个 viewDidLoad Symbol，会在运行到所有的viewDidLoad方法时停下. 如果你要添加某个特定类的实例方法，可以用 -[类名 实例方法名]。类方法是 +[类名 方法名]
+	我们可以添加指定的方法为断点。比如添加一个 viewDidLoad Symbol，会在运行到所有的viewDidLoad方法时停下. 如果你要添加某个特定类的实例方法，可以用 -[类名 实例方法名]。类方法是 +[类名 方法名]
 
-![Symbolic Breakpoint](/assets/symbolic_breakpoint.png)
+	![Symbolic Breakpoint](/assets/symbolic_breakpoint.png)
 
-* 如果你不知道这个方法格式应该如何书写，可以在你想要打断点的方法里先做断点，然后查看左边的Show the Debugger Navigator, 里的 Thread 指向的方法名:
+ 	如果你不知道这个方法格式应该如何书写，可以在你想要打断点的方法里先做断点，然后查看左边的Show the Debugger Navigator, 里的 Thread 指向的方法名:
 
-![Show The Debugger Navigator](/assets/show_the_debugger_navigator.png)
+	![Show The Debugger Navigator](/assets/show_the_debugger_navigator.png)
 
-看到 0 后面的方法调用了吗？
+	看到 0 后面的方法调用了吗？
 
 
 2. Exception Breakpoint
 
-另一个非常有用的断点设定, 
+	另一个非常有用的断点设定, 
 
-在开发中除了用断点调试我们的应用分析问题外，还有一种情况是，我们向被释放的对象发送了消息，导致的crash (EXC_BAD_ACCESS)。
+	在开发中除了用断点调试我们的应用分析问题外，还有一种情况是，我们向被释放的对象发送了消息，导致的crash (EXC_BAD_ACCESS)。
 
-关于Zombie:
+	关于Zombie:
 
-> 在 Cocoa 中，zombies 是一种即使生命终止了也会到惹麻烦的对象。我们可以做的是启动一个编译设置，使对象的引用计数降为0的时候不被释放，而是将它们转化为NSZombie对象。这个类的目的是记录任何对它的实例的调用，因为这意味着代码企图用一个已经消亡的对象调用方法。 
+	在 Cocoa 中，zombies 是一种即使生命终止了也会到惹麻烦的对象。我们可以做的是启动一个编译设置，使对象的引用计数降为0的时候不被释放，而是将它们转化为NSZombie对象。这个类的目的是记录任何对它的实例的调用，因为这意味着代码企图用一个已经消亡的对象调用方法。 
 
-通常我们的做法是通过设定 Exception Breakpoint 来统一排错，其中也包括了些类情况, 所以这个断点设定的方法来检查类似情况变得非常实用。
+	通常我们的做法是通过设定 Exception Breakpoint 来统一排错，其中也包括了些类情况, 所以这个断点设定的方法来检查类似情况变得非常实用。
 
-![Exception Breakpoint Menu](/assets/exception_breakpoint_menu.png)
+	![Exception Breakpoint Menu](/assets/exception_breakpoint_menu.png)
 
-如果添加这个类型的 Breakpoint , 好多隐藏很深的 Bug 都会被发现, 类似于 @try {} @catch {} 的 catch 部分
+	如果添加这个类型的 Breakpoint , 好多隐藏很深的 Bug 都会被发现, 类似于 @try {} @catch {} 的 catch 部分
 
-![Exceptions Breakpoint](/assets/exceptions_breakpoint.png)
+	![Exceptions Breakpoint](/assets/exceptions_breakpoint.png)
 
 
-- 如果使用GDB和更早版本的XCode的用户可以用下面的方式来检查：
+3. 如果使用GDB和更早版本的XCode的用户可以用下面的方式来检查：
 
-  编辑Scheme, 将Diagnostics中的 Enable Zombie Objects 与 Malloc Stack 勾选上
+	编辑Scheme, 将Diagnostics中的 Enable Zombie Objects 与 Malloc Stack 勾选上
 
 	并选中 Enable Zombie Objects 与 Malloc Stack：
 
@@ -137,12 +137,12 @@ Instrument 包括的小工具有好几种，我们这里先介绍几个:
 
 由于使用Objective－c 和 c ，直接执行二进制指令，自己管理内存，会出现访问错误内存的情况出现。这时，系统会直接把你的进程干掉，iOS会给你生成一个Crash Log
 
-* **关于crash时，如果显示的是堆栈信息，如何正确定位到程序部分**
-
-  *** First throw call stack:
-
-  (0x2f3a022 0x30cbcd6 0x2ee2a48 0x2ee29b9 0x2f392da 0x9cfd3 0x7f460 0x80a6e 0x103ba29 0x2f05855 0x2f05778 ...)
-
+* 关于crash时，如果显示的是堆栈信息，如何正确定位到程序部分
+	
+	```
+	First throw call stack:
+	(0x2f3a022 0x30cbcd6 0x2ee2a48 0x2ee29b9 0x2f392da 0x9cfd3 0x7f460 0x80a6e 0x103ba29 0x2f05855 0x2f05778 ...)
+	```
 
   如何查看这些信息背后的真实情况，在main.m代码中加入以写部分：
   
@@ -167,15 +167,15 @@ Instrument 包括的小工具有好几种，我们这里先介绍几个:
 
 ---
 
-* **理解与分析 Crash Report**
+* 理解与分析 Crash Report
 
-在APP上线后，对 Crash Report 的监控是最为重要的环节了。itunes connect应用管理后台提供了部分的 Crash Reports，你可以在管理后台下载 .crash 文件，然后通过这个文件查找是哪儿引起的crash。
+	在APP上线后，对 Crash Report 的监控是最为重要的环节了。itunes connect应用管理后台提供了部分的 Crash Reports，你可以在管理后台下载 .crash 文件，然后通过这个文件查找是哪儿引起的crash。
 
-但是这个文件中没有平时调试时候那样可以看到的函数名和函数具体调用行数。因为这里的这些信息都被转换成了16进制的地址，起到了一定的加密作用，别人拿到你的crash日志也不知道哪里崩溃了，需要利用你编译app的时候生成的dSYM文件然后将这些信息反转为可读模式。所以保留好你Archive后的dSYM文件是很有用的！
+	但是这个文件中没有平时调试时候那样可以看到的函数名和函数具体调用行数。因为这里的这些信息都被转换成了16进制的地址，起到了一定的加密作用，别人拿到你的crash日志也不知道哪里崩溃了，需要利用你编译app的时候生成的dSYM文件然后将这些信息反转为可读模式。所以保留好你Archive后的dSYM文件是很有用的！
 
-如果你能找到 dSYM 文件，就可以利用symbolicatecrash工具查找具体的Bug发生地点了。
+	如果你能找到 dSYM 文件，就可以利用symbolicatecrash工具查找具体的Bug发生地点了。
 
-```symbolicatecrash [CrashLog file] [dSYM file]```
+	```symbolicatecrash [CrashLog file] [dSYM file]```
 
 *tips*
 > 查找 symbolicatecrash 文件位置
@@ -248,16 +248,16 @@ Instrument 包括的小工具有好几种，我们这里先介绍几个:
 
   或用 dwarfdump 命令也行
 
-    ```dwarfdump –lookup 0x000036d2 –arch armv7 YOURAPP.app.dSYM```
+  ```dwarfdump –lookup 0x000036d2 –arch armv7 YOURAPP.app.dSYM```
 
 
-	参考文章:
+参考文章:
 
 - [Understanding and Analyzing iOS Application Crash Reports](https://developer.apple.com/library/ios/technotes/tn2151/_index.html)
 - [理解Crash Log](http://www.whoslab.me/blog/?p=608)
 - [KERN_INVALID_ADDRESS 与 KERN_PROTECTION_FAILURE 的区别](http://stackoverflow.com/questions/1282428/whats-the-difference-between-kern-invalid-address-and-kern-protection-failure)
 
-	一些第三方分析工具:
+一些第三方分析工具:
 
 - [UMeng 日志监控](http://www.umeng.com/)
 - [反汇编工具Hopper分析Crash Log](http://www.hopperapp.com/)

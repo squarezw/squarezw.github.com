@@ -70,7 +70,6 @@ tags: api objective c oc project xcode 自动生成 项目 文档
     --exit-threshold 2 \
     "${PROJECT_DIR}"
 
-![objective-c api auto generator config](/assets/objectivec_api_documentation.png)
 
 Build 后即可在 `~/help` 文件夹下看到多出了几个html 文件，那就是完整的项目API文档。
 

@@ -48,91 +48,94 @@ ARC is supported in Xcode 4.2 for OS X v10.6 and v10.7 (64-bit applications) and
 * 你不能再调用 dealloc 或者实现、调用 retain, release, retainCount, autorelease, 同样@selector(retain), @selector(release)也是不允许的，
   当然你可以实现 dealloc 方法，来管理你的实例变量，或者你会调用 [systemClassInstance setDelegate:nil]等.定制的 dealloc 方法不需要写 [super dealloc],这个动作会默认调用。 
 
-  你仍然可以用 CFRetain, CFRelease 和相关Core Foundation方法。 如果要管理这类对象可以参考：(Managing Toll-Free Bridging 管理自由桥接) 
+    你仍然可以用 CFRetain, CFRelease 和相关Core Foundation方法。 如果要管理这类对象可以参考：(Managing Toll-Free Bridging 管理自由桥接) 
 
 * 你不能使用 NSAllocateObject 或 NSDeallocateObject
   
-  创建对象用 alloc
+    创建对象用 alloc
 
 * 你不能在 C 结构体中使用对象指针
  
-  因此下面代码是不可用的
+    因此下面代码是不可用的
   
-```
-typedef struct {
-    UIImage *selectedImage;
-    UIImage *disabledImage;
-} ButtonImages;
-```
+	```
+	typedef struct {
+	    UIImage *selectedImage;
+	    UIImage *disabledImage;
+	} ButtonImages;
+	```
 
-  建议是用 OC类来管理它们
+    建议是用 OC类来管理它们
 
 * 不能随意在 id 与 void * 之间随意转换
 
-  编译器同样是无法管理 void * 这类 Core Foundation类型的东东，都要用 Managing Toll-Free Bridging 进行生命同期的管理。
+    编译器同样是无法管理 void * 这类 Core Foundation类型的东东，都要用 Managing Toll-Free Bridging 进行生命同期的管理。
 
 * 你不能再使用 NSAutoreleasePool 对象
 
-  ARC 提供了性能更好的 @autoreleasepool block 替换原来这类使用方式。
+    ARC 提供了性能更好的 @autoreleasepool block 替换原来这类使用方式。
 
 * 你不能使用内存区
 
-  你不需要再使用 NSZone 等这类对象，因为现在Objective-C运行时已经忽略NSZone了，所以没必要再使用NSZone了。
+    你不需要再使用 NSZone 等这类对象，因为现在Objective-C运行时已经忽略NSZone了，所以没必要再使用NSZone了。
 
 * 你不能使用 new 开头的属性名，但你可以手动指定 getter 方法名
 
-  例如:
+    例如:
 
-```
-// 非法:
-@property NSString *newTitle;
+	```
+	// 非法:
+	@property NSString *newTitle;
 
-// OK:
-@property (getter=theNewTitle) NSString *newTitle;
-```
+	// OK:
+	@property (getter=theNewTitle) NSString *newTitle;
+	```
 
 # ARC 新的对象生命周期声明
 
 * 属性
 
-```
-// 用 strong 代替 retain, @property(retain) MyClass *myObject;
-@property(strong) MyClass *myObject;
+	```
+	// 用 strong 代替 retain
+	@property(retain) MyClass *myObject; ->
+	@property(strong) MyClass *myObject;
  
-// 用 weak 代替 assign "@property(assign) MyClass *myObject;"
-// 实例变量被释放后，会自动赋予 nil 指针，省得我们自己在手动赋nil操作。
-@property(weak) MyClass *myObject;
+	// 用 weak 代替 assign 
+	@property(assign) MyClass *myObject; ->
+	// 实例变量被释放后，会自动赋予 nil 指针，省得我们自己在手动赋nil操作。
+	@property(weak) MyClass *myObject;
 
-```
+	```
 
-在 ARC 中 strong 将是默认的类型.
+	在 ARC 中 strong 将是默认的类型.
 
 * 变量
 
-变量同样有以下几种管理生命周期的声明
+	变量同样有以下几种管理生命周期的声明
+	
+	```
+  	__strong
+  	__weak
+  	__unsafe_unretained
+  	__autoreleasing
+	__unsafe_unretained 类似原来的 assign
+	```
+	
+	所以你可以这样声明这些对象
 
-  __strong
-  __weak
-  __unsafe_unretained
-  __autoreleasing
+	```
+	MyClass * __weak myWeakReference;
+	MyClass * __unsafe_unretained myUnsafeReference;
+	```
 
-__unsafe_unretained 类似原来的 assign
+	需要注意的是 __weak 变量在栈中的情况，例如:
 
-所以你可以这样声明这些对象
+	```
+ 	NSString * __weak string = [[NSString alloc] initWithFormat:@"First Name: %@", [self firstName]];
+  	NSLog(@"string: %@", string);
+	```
 
-```
-MyClass * __weak myWeakReference;
-MyClass * __unsafe_unretained myUnsafeReference;
-```
-
-需要注意的是 __weak 变量在栈中的情况，例如:
-
-```
-  NSString * __weak string = [[NSString alloc] initWithFormat:@"First Name: %@", [self firstName]];
-  NSLog(@"string: %@", string);
-```
-
-尽管 string 被实例化，但由于 string 声明为 weak 类型，它没有 strong 这个引用，所以他在赋值后立即就被释放了,在Log它时，它已经被释放了。
+	尽管 string 被实例化，但由于 string 声明为 weak 类型，它没有 strong 这个引用，所以他在赋值后立即就被释放了,在Log它时，它已经被释放了。
 
 ## 同样你也要注意对象值传递. 比如下面的代码
 
@@ -169,67 +172,69 @@ if (!OK) {
 
 你可以使用生命周期修饰符来避免Strong引用周期。例如，当你制作了一组父子结构的对象，而且父类要引用子类，则会出现Strong引用周期；反之，当 你将一个父类指向子类为strong引用，子类指向父类为weak引用，就可以避免出现Strong引用周期。当对象包含block objects时，这样的情况会变的更加隐性。
 
-在手动内存管理模式下， ``` __block id x ```; x不会被 retaining
-在ARC模式下，``` __block id x ``` , 默认被retaining
+在MRC模式下，``` __block id x ```, x不会被 retaining
+
+在ARC模式下，``` __block id x ```, x默认被 retaining
 
 为了使手动内存管理模式代码可以在ARC模式下正常工作， 你可以用 ``` __unsafe_unretained ``` 来修饰 ``` __block id ``` x;。就和"__unsafe_unretained"字面上的意思一样, 不过,这样一个non-retained变量是危险的(因为它会变成一个野指 针) 会带来不良后果。有两种更好一点的方法来处理，一是使用__weak (当你不需要支持iOS 4或OS X v10.6), 二是设__block值为nil，结束他的生命周期。
 
 * 这是MRC时代处理 __block 里对象释放问题:
 
-```
-MyViewController *myController = [[MyViewController alloc] init…];
-// ...
-myController.completionHandler =  ^(NSInteger result) {
-   [myController dismissViewControllerAnimated:YES completion:nil];
-};
-[self presentViewController:myController animated:YES completion:^{
-   [myController release];
-}];
-```
+	```
+	MyViewController *myController = [[MyViewController alloc] init…];
+	// ...
+	myController.completionHandler =  ^(NSInteger result) {
+	   [myController dismissViewControllerAnimated:YES completion:nil];
+	};
+	[self presentViewController:myController animated:YES completion:^{
+	   [myController release];
+	}];
+	```
 
-你可以使用 __block修饰符然后设置myController的值为nil 替代上面的方式:
+	你可以使用 __block修饰符然后设置myController的值为nil 替代上面的方式:
 
-```
-MyViewController * __block myController = [[MyViewController alloc] init…];
-// ...
-myController.completionHandler =  ^(NSInteger result) {
-    [myController dismissViewControllerAnimated:YES completion:nil];
-    myController = nil;
-};
-```
+	```
+	MyViewController * __block myController = [[MyViewController alloc] init…];
+	// ...
+	myController.completionHandler =  ^(NSInteger result) {
+	    [myController dismissViewControllerAnimated:YES completion:nil];
+	    myController = nil;
+	};
+	```
 
-无伦哪种形式，你都可以使用一个 weak 引用对象避免循环引用:
+	无伦哪种形式，你都可以使用一个 weak 引用对象避免循环引用:
 
-```
-MyViewController *myController = [[MyViewController alloc] init…];
-// ...
-MyViewController * __weak weakMyViewController = myController;
-myController.completionHandler =  ^(NSInteger result) {
-    [weakMyViewController dismissViewControllerAnimated:YES completion:nil];
-};
-```
+	```
+	MyViewController *myController = [[MyViewController alloc] init…];
+	// ...
+	MyViewController * __weak weakMyViewController = myController;
+	myController.completionHandler =  ^(NSInteger result) {
+	    [weakMyViewController dismissViewControllerAnimated:YES completion:nil];
+	};
+	```
 
-在某个时候这个对象，如果放在异步执行时，对象可能已经被释放，所以需要一个 strong 的对象把它 hold 住。
+	在某个时候这个对象，如果放在异步执行时，对象可能已经被释放，所以需要一个 strong 的对象把它 hold 住。
 
-```
-MyViewController *myController = [[MyViewController alloc] init…];
-// ...
-MyViewController * __weak weakMyController = myController;
-myController.completionHandler =  ^(NSInteger result) {
-    MyViewController *strongMyController = weakMyController;
-    if (strongMyController) {
-        // ...
-        [strongMyController dismissViewControllerAnimated:YES completion:nil];
-        // ...
-    }
-    else {
-        // Probably nothing...
-    }
-};
-```
+	```
+	MyViewController *myController = [[MyViewController alloc] init…];
+	// ...
+	MyViewController * __weak weakMyController = myController;
+	myController.completionHandler =  ^(NSInteger result) {
+	    MyViewController *strongMyController = weakMyController;
+	    if (strongMyController) {
+	        // ...
+	        [strongMyController dismissViewControllerAnimated:YES completion:nil];
+	        // ...
+	    }
+	    else {
+	        // Probably nothing...
+	    }
+	};
+	```
 
 ## 栈里的变量初始化即为 nil
 使用ARC后， strong, weak, autoreleasing 栈里的变量默认初始为nil
+
 ```
 - (void)myMethod {
     NSString *name; // 这里 name 已经被赋予了nil指针， 所以下面的代码不会出错。
@@ -329,83 +334,87 @@ iOS在系统内存不足的时候，UIViewController会将没有表示的所有v
 
 * 通常遇到的错误有这样一些：
 
-  Receiver type ‘X’ for instance message is a forward declaration
+  * Receiver type ‘X’ for instance message is a forward declaration
 
-  这往往是引用的问题。ARC要求完整的前向引用，也就是说在MRC时代可能只需要在.h中申明@class就可以，但是在ARC中如果调用某个子类中未覆盖的父类中的方法的话，必须对父类.h引用，否则无法编译。
+  		这往往是引用的问题。ARC要求完整的前向引用，也就是说在MRC时代可能只需要在.h中申明@class就可以，但是在ARC中如果调用某个子类中未覆盖的父类中的方法的话，必须对父类.h引用，否则无法编译。
 
-  Switch case is in protected scope
+  * Switch case is in protected scope
 
-  现在switch语句必须加上{}了，ARC需要知道局部变量的作用域，加上{}后switch语法更加严格，否则遇到没有break的分支的话内存管理会出现问题。
+    	现在switch语句必须加上{}了，ARC需要知道局部变量的作用域，加上{}后switch语法更加严格，否则遇到没有break的分支的话内存管理会出现问题。
 
-  A name is referenced outside the NSAutoreleasePool scope that it was declared in
+  * A name is referenced outside the NSAutoreleasePool scope that it was declared in
 
-  这是由于写了自己的 autoreleasepool，而在转换时在原来的pool中申明的变量在新的@autoreleasepool中作用域将被局限。解决方法是把变量申明拿到pool的申请之前。
+  		这是由于写了自己的 autoreleasepool，而在转换时在原来的pool中申明的变量在新的@autoreleasepool中作用域将被局限。解决方法是把变量申明拿到pool的申请之前。
 
-  ARC forbids Objective-C objects in structs or unions
+  * ARC forbids Objective-C objects in structs or unions
   
 * ARC 需要你指定 super init 的结果到 self
-   [super init]; // 这将是无效的
 
-   推荐用 
+	[super init]; // 这将是无效的
+
+	推荐用
+	
+	```
      self = [super init];
      if (self) {
 	   ...
+	```
 
-实例变量会变成 strong 类型
+	实例变量会变成 strong 类型
 
-在用 ARC 之前, thing 这个变量是一个 weak 类型
+	在用 ARC 之前, thing 这个变量是一个 weak 类型
 
-```
-@interface MyClass : Superclass {
-    id thing; // Weak reference.
-}
-// ...
-@end
- 
-@implementation MyClass
-- (id)thing {
-    return thing;
-}
-- (void)setThing:(id)newThing {
-    thing = newThing;
-}
-// ...
-@end
-```
+	```
+	@interface MyClass : Superclass {
+	    id thing; // Weak reference.
+	}
+	// ...
+	@end
+	 
+	@implementation MyClass
+	- (id)thing {
+	    return thing;
+	}
+	- (void)setThing:(id)newThing {
+	    thing = newThing;
+	}
+	// ...
+	@end
+	```
 
-使用 ARC 后，thing 变量实际上是默认用了 strong 类型，所以如果你要想继续使用 weak 类型，必须显示声明
+	使用 ARC 后，thing 变量实际上是默认用了 strong 类型，所以如果你要想继续使用 weak 类型，必须显示声明
 
-```
-@interface MyClass : Superclass {
-    id __weak thing;
-}
-// ...
-@end
- 
-@implementation MyClass
-- (id)thing {
-    return thing;
-}
-- (void)setThing:(id)newThing {
-    thing = newThing;
-}
-// ...
-@end
-```
+	```
+	@interface MyClass : Superclass {
+	    id __weak thing;
+	}
+	// ...
+	@end
+	 
+	@implementation MyClass
+	- (id)thing {
+	    return thing;
+	}
+	- (void)setThing:(id)newThing {
+	    thing = newThing;
+	}
+	// ...
+	@end
+	```
 
-或
+	或
 
-```
-@interface MyClass : Superclass
-@property (weak) id thing;
-// ...
-@end
- 
-@implementation MyClass
-@synthesize thing;
-// ...
-@end
-```
+	```
+	@interface MyClass : Superclass
+	@property (weak) id thing;
+	// ...
+	@end
+	 
+	@implementation MyClass
+	@synthesize thing;
+	// ...
+	@end
+	```
 
 * 首先，我们需要转变一下观念, 对于在.h中申明的实例变量：
 
