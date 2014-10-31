@@ -3,7 +3,7 @@ layout: post
 title: "iOS 手势识别"
 date: 2014-08-28 20:01
 comments: true
-categories: iOS Gesture Recognizer
+categories: Gesture
 ---
 
 ## 手势识别
