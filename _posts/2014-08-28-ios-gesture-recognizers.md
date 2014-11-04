@@ -72,7 +72,7 @@ UIKit 框架提供了预先定义的一些常用手势定义。它提供的预�
 
 如果你创建这个实例化对象后，你需要通过  addGestureRecognizer:  方法附加给一个 View. 下面是一个示例
 
-```
+```objective-c
 - (void)viewDidLoad {
      [super viewDidLoad];
  
