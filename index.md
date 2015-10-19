@@ -11,6 +11,8 @@ mail: <square.zhao.wei@gmail.com>
 
 weibo: [squarezw](http://weibo.com/squarezw)
 
+linkedIn: [squarezw](http://www.linkedin.com/in/squarezw)
+
 ----
 
 <!-- ## Sample Posts -->

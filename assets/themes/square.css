@@ -1,0 +1,7 @@
+.follow-link {
+    background: transparent url('/assets/social-sprite.png') left -34px no-repeat;
+    display: inline-block;
+    height: 21px;
+    text-indent: -999em;
+    width: 21px;
+}
