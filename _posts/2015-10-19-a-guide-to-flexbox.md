@@ -38,7 +38,7 @@ Flexbox 是一个完整的模块，不是一个单一属性，它包含了很多
 
 ### display
 
-定义一个 flex 容器，给定一个值指定是内联(inline)或者块(block)。它可以打开一个 flex 环境用来决定元素的填充方式。
+定义一个 flex 容器，给定值指定是内联(inline)或者块(block)。它可以打开一个 flex 环境用来决定元素的填充方式。
 
 ```
 .container {
@@ -216,6 +216,8 @@ Flexbox 是一个完整的模块，不是一个单一属性，它包含了很多
 ---
 
 ## 其它相关资源
+
+[Facebook Css Layout](https://github.com/facebook/css-layout)
 
 [Flexbox in the CSS specifications](http://www.w3.org/TR/css3-flexbox/)
 
