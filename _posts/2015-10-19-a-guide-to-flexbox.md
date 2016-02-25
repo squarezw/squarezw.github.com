@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "FlexBox 使用向导"
-description: ""
+description: "a guide to flexbox"
 category: 
 tags: [flex layout box]
 ---

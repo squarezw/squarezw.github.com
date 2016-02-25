@@ -9,9 +9,11 @@ like objc & ruby
 
 mail: <square.zhao.wei@gmail.com>
 
-weibo: [squarezw](http://weibo.com/squarezw)
+[Github](https://github.com/squarezw)
 
-linkedIn: [squarezw](http://www.linkedin.com/in/squarezw)
+[Weibo](http://weibo.com/squarezw)
+
+[LinkedIn](http://www.linkedin.com/in/squarezw)
 
 ----
 
